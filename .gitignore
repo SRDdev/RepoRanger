@@ -1,0 +1,12 @@
+.env
+**.cpython
+**.pyc
+__pycache__
+**/__pycache__
+*__pycache__
+
+
+# Demos
+agent_1_demo.py
+tool_1_demo.py
+tool_2_demo.py

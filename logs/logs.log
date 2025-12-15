@@ -1,0 +1,431 @@
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:06:14
+#---------------------------------------------------------------------#
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:06:24
+#---------------------------------------------------------------------#
+INFO | demo               | Repo : <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                              demo.py:10
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:07:51
+#---------------------------------------------------------------------#
+INFO | gitops-demo        | Starting GitOps demo                                                                                                      demo.py:9
+INFO | gitops-demo        | Repository path: .                                                                                                       demo.py:10
+INFO | gitops-demo        | GitOps initialized successfully                                                                                          demo.py:17
+INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                        demo.py:18
+INFO | gitops-demo        | Current branch: master                                                                                                   demo.py:28
+INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                                                 demo.py:35
+INFO | gitops-demo        | Diff output:                                                                                                             demo.py:39
+INFO | gitops-demo        | Error getting diff: Cmd('git') failed due to: exit code(128)                                                             demo.py:40
+     |                    |   cmdline: git diff HEAD
+     |                    |   stderr: 'fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.
+     |                    | Use '--' to separate paths from revisions, like this:
+     |                    | 'git <command> [<revision>...] -- [<file>...]''
+INFO | gitops-demo        | Reading file: README.md                                                                                                  demo.py:48
+WAR  | gitops-demo        | README.md does not exist in repository                                                                                   demo.py:52
+INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                                                  demo.py:60
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:08:37
+#---------------------------------------------------------------------#
+INFO | gitops-demo        | Starting GitOps demo                                                                                                      demo.py:9
+INFO | gitops-demo        | Repository path: .                                                                                                       demo.py:10
+INFO | gitops-demo        | GitOps initialized successfully                                                                                          demo.py:17
+INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                        demo.py:18
+INFO | gitops-demo        | Current branch: master                                                                                                   demo.py:28
+INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                                                 demo.py:35
+INFO | gitops-demo        | No changes detected in working tree                                                                                      demo.py:42
+INFO | gitops-demo        | Reading file: README.md                                                                                                  demo.py:48
+WAR  | gitops-demo        | README.md does not exist in repository                                                                                   demo.py:52
+INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                                                  demo.py:60
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:09:45
+#---------------------------------------------------------------------#
+INFO | gitops-demo        | Starting GitOps demo                                                                                                      demo.py:9
+INFO | gitops-demo        | Repository path: .                                                                                                       demo.py:10
+INFO | gitops-demo        | GitOps initialized successfully                                                                                          demo.py:17
+INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                        demo.py:18
+INFO | gitops-demo        | Current branch: UNBORN_HEAD                                                                                              demo.py:28
+INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                                                 demo.py:35
+INFO | gitops-demo        | No changes detected in working tree                                                                                      demo.py:42
+INFO | gitops-demo        | Reading file: README.md                                                                                                  demo.py:48
+WAR  | gitops-demo        | README.md does not exist in repository                                                                                   demo.py:52
+INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                                                  demo.py:60
+INFO | gitops-demo        | Repository has no commits yet. Create an initial commit before switching branches.                                       demo.py:63
+INFO | gitops-demo        | Attempting to commit changes                                                                                             demo.py:68
+INFO | gitops-demo        | Error committing changes: Ref 'HEAD' did not resolve to an object                                                        demo.py:73
+INFO | gitops-demo        | GitOps demo completed successfully                                                                                       demo.py:82
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:11:11
+#---------------------------------------------------------------------#
+INFO | gitops-demo        | Starting GitOps demo                                                                                                      demo.py:9
+INFO | gitops-demo        | Repository path: .                                                                                                       demo.py:10
+INFO | gitops-demo        | GitOps initialized successfully                                                                                          demo.py:17
+INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                        demo.py:18
+INFO | gitops-demo        | Current branch: UNBORN_HEAD                                                                                              demo.py:28
+INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                                                 demo.py:35
+INFO | gitops-demo        | Diff output:                                                                                                             demo.py:39
+INFO | gitops-demo        | diff --git a/logs/logs.log b/logs/logs.log                                                                               demo.py:40
+     |                    | index 9149653..fa7a638 100644
+     |                    | --- a/logs/logs.log
+     |                    | +++ b/logs/logs.log
+     |                    | @@ -59,3 +59,16 @@ WAR  | gitops-demo        | README.md does not exist in repository
+     |                    |  INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                   
+     |                    | demo.py:60
+     |                    |  INFO | gitops-demo        | Repository has no commits yet. Create an initial commit before switching branches.        
+     |                    | demo.py:63
+     |                    |  INFO | gitops-demo        | Attempting to commit changes                                                              
+     |                    | demo.py:68
+     |                    | +INFO | gitops-demo        | Error committing changes: Ref 'HEAD' did not resolve to an object                         
+     |                    | demo.py:73
+     |                    | +INFO | gitops-demo        | GitOps demo completed successfully                                                        
+     |                    | demo.py:82
+     |                    | +
+     |                    | +
+     |                    | +#---------------------------------------------------------------------#
+     |                    | +Run : 2025-12-15 10:11:11
+     |                    | +#---------------------------------------------------------------------#
+     |                    | +INFO | gitops-demo        | Starting GitOps demo                                                                      
+     |                    | demo.py:9
+     |                    | +INFO | gitops-demo        | Repository path: .                                                                        
+     |                    | demo.py:10
+     |                    | +INFO | gitops-demo        | GitOps initialized successfully                                                           
+     |                    | demo.py:17
+     |                    | +INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>         
+     |                    | demo.py:18
+     |                    | +INFO | gitops-demo        | Current branch: UNBORN_HEAD                                                               
+     |                    | demo.py:28
+     |                    | +INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                  
+     |                    | demo.py:35
+INFO | gitops-demo        | Reading file: README.md                                                                                                  demo.py:48
+INFO | gitops-demo        | Content of README.md:                                                                                                    demo.py:54
+     |                    | # RepoRanger
+     |                    | **Your Autonomous DevOps & Documentation Partner.**
+     |                    | RepoRanger is an agentic AI system built with **LangChain** and **LangGraph**. It doesn't just chat with your code; it
+     |                    | actively maintains it. It acts as a Senior Engineer that lives in your repository, handling documentation, code
+     |                    | quality, git operations, and system visualization autonomously.
+     |                    | ## 🧠 Skills (Agents)
+     |                    | RepoRanger operates using a multi-agent orchestration graph. Each node in the graph represents a specialized skill:
+     |                    | ### 1. The Contextual Scribe ✍️
+     |                    | * **Role:** Documentation & PR Storytelling.
+     |                    | * **Capability:** Analyzes the *intent* behind code changes, not just the diff. Generates rich PR descriptions, updates
+     |                    | `CHANGELOG.md` based on semantic analysis, and ensures documentation stays in sync with code logic.
+     |                    | ### 2. The Code Steward 🛡️
+     |                    | * **Role:** Proactive Maintenance.
+     |                    | * **Capability:** Audits dependencies for security risks, identifies dead code, and enforces code style. It can
+     |                    | auto-fix linting errors and push the clean-up commits directly to your branch.
+     |                    | ### 3. The Git Tactician ⚔️
+     |                    | * **Role:** Complex Version Control.
+     |                    | * **Capability:** Handles "messy" git operations. Capable of semantic merge conflict resolution, smart cherry-picking
+     |                    | across branches, and cleaning up stale feature branches safely.
+     |                    | ### 4. The Visual Architect 📐
+     |                    | * **Role:** Dynamic Visualization.
+     |                    | * **Capability:** Auto-generates Mermaid.js diagrams for class hierarchies, dependency graphs, and logic flows. If the
+     |                    | code structure changes, the diagrams in your docs update automatically.
+     |                    | ## 🛠️ Tech Stack
+     |                    | * **Orchestration:** LangGraph (Stateful multi-agent workflows)
+     |                    | * **Framework:** LangChain
+     |                    | * **LLM:** GPT-4o / Claude 3.5 Sonnet
+     |                    | * **Git Operations:** GitPython
+     |                    | * **Parsing:** Tree-sitter / AST
+     |                    | ## 🚀 Getting Started
+     |                    | ### Prerequisites
+     |                    | * Python 3.10+
+     |                    | * Poetry (recommended) or Pip
+     |                    | * GitHub Personal Access Token (PAT)
+     |                    | ### Installation
+     |                    | 1.  **Clone the RepoRanger:**
+     |                    |     ```bash
+     |                    |     git clone [https://github.com/yourusername/reporanger.git](https://github.com/yourusername/reporanger.git)
+     |                    |     cd reporanger
+     |                    |     ```
+     |                    | 2.  **Install Dependencies:**
+     |                    |     ```bash
+     |                    |     poetry install
+     |                    |     # OR
+     |                    |     pip install -r requirements.txt
+     |                    |     ```
+     |                    | 3.  **Configure Environment:**
+     |                    |     ```bash
+     |                    |     cp .env.example .env
+     |                    |     # Add your OPENAI_API_KEY and GITHUB_ACCESS_TOKEN
+     |                    |     ```
+     |                    | 4.  **Run the Agent:**
+     |                    |     ```bash
+     |                    |     python main.py
+     |                    |     ```
+     |                    | ## 🤝 Contributing
+     |                    | Contributions are welcome! Please ensure that any PR includes updated tests.
+     |                    | ## 📄 License
+     |                    | MIT
+INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                                                  demo.py:60
+INFO | gitops-demo        | Repository has no commits yet. Create an initial commit before switching branches.                                       demo.py:63
+INFO | gitops-demo        | Attempting to commit changes                                                                                             demo.py:68
+INFO | gitops-demo        | Error committing changes: Ref 'HEAD' did not resolve to an object                                                        demo.py:73
+INFO | gitops-demo        | GitOps demo completed successfully                                                                                       demo.py:82
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:12:07
+#---------------------------------------------------------------------#
+INFO | gitops-demo        | Starting GitOps demo                                                                                                      demo.py:9
+INFO | gitops-demo        | Repository path: .                                                                                                       demo.py:10
+INFO | gitops-demo        | GitOps initialized successfully                                                                                          demo.py:17
+INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>                                        demo.py:18
+INFO | gitops-demo        | Current branch: UNBORN_HEAD                                                                                              demo.py:28
+INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                                                 demo.py:35
+INFO | gitops-demo        | Diff output:                                                                                                             demo.py:39
+INFO | gitops-demo        | diff --git a/demo.py b/demo.py                                                                                           demo.py:40
+     |                    | index 9138963..a974793 100644
+     |                    | --- a/demo.py
+     |                    | +++ b/demo.py
+     |                    | @@ -67,10 +67,10 @@ def main():
+     |                    |      # ----------------------------
+     |                    |      logger.info("Attempting to commit changes")
+     |                    |  
+     |                    | -    commit_result = gitops.commit_changes(
+     |                    | -        message="Demo commit from GitOps usage script"
+     |                    | -    )
+     |                    | -    logger.info(commit_result)
+     |                    | +    # commit_result = gitops.commit_changes(
+     |                    | +    #     message="Demo commit from GitOps usage script"
+     |                    | +    # )
+     |                    | +    # logger.info(commit_result)
+     |                    |  
+     |                    |      # ----------------------------
+     |                    |      # Push changes (optional / commented for safety)
+     |                    | diff --git a/logs/logs.log b/logs/logs.log
+     |                    | index a78c859..5b2aec5 100644
+     |                    | --- a/logs/logs.log
+     |                    | +++ b/logs/logs.log
+     |                    | @@ -169,3 +169,16 @@ INFO | gitops-demo        | Content of README.md:
+     |                    |  INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                   
+     |                    | demo.py:60
+     |                    |  INFO | gitops-demo        | Repository has no commits yet. Create an initial commit before switching branches.        
+     |                    | demo.py:63
+     |                    |  INFO | gitops-demo        | Attempting to commit changes                                                              
+     |                    | demo.py:68
+     |                    | +INFO | gitops-demo        | Error committing changes: Ref 'HEAD' did not resolve to an object                         
+     |                    | demo.py:73
+     |                    | +INFO | gitops-demo        | GitOps demo completed successfully                                                        
+     |                    | demo.py:82
+     |                    | +
+     |                    | +
+     |                    | +#---------------------------------------------------------------------#
+     |                    | +Run : 2025-12-15 10:12:07
+     |                    | +#---------------------------------------------------------------------#
+     |                    | +INFO | gitops-demo        | Starting GitOps demo                                                                      
+     |                    | demo.py:9
+     |                    | +INFO | gitops-demo        | Repository path: .                                                                        
+     |                    | demo.py:10
+     |                    | +INFO | gitops-demo        | GitOps initialized successfully                                                           
+     |                    | demo.py:17
+     |                    | +INFO | gitops-demo        | Repo object: <git.repo.base.Repo '/home/shreyas/Desktop/Shreyas/RepoRanger/.git'>         
+     |                    | demo.py:18
+     |                    | +INFO | gitops-demo        | Current branch: UNBORN_HEAD                                                               
+     |                    | demo.py:28
+     |                    | +INFO | gitops-demo        | Fetching git diff (working tree vs HEAD)                                                  
+     |                    | demo.py:35
+     |                    | diff --git a/src/tools/__pycache__/gitops.cpython-312.pyc b/src/tools/__pycache__/gitops.cpython-312.pyc
+     |                    | index d561305..9214fef 100644
+     |                    | Binary files a/src/tools/__pycache__/gitops.cpython-312.pyc and b/src/tools/__pycache__/gitops.cpython-312.pyc differ
+     |                    | diff --git a/src/tools/gitops.py b/src/tools/gitops.py
+     |                    | index 489ced8..1ffa941 100644
+     |                    | --- a/src/tools/gitops.py
+     |                    | +++ b/src/tools/gitops.py
+     |                    | @@ -117,9 +117,7 @@ class GitOps:
+     |                    |      def commit_changes(self, message: str, files: Optional[List[str]] = None) -> str:
+     |                    |          """
+     |                    |          Stages and commits changes.
+     |                    | -
+     |                    | -        - If files is provided → only those files are staged
+     |                    | -        - Otherwise → all changes are staged
+     |                    | +        Handles initial commit (unborn HEAD) correctly.
+     |                    |          """
+     |                    |          try:
+     |                    |              if files:
+     |                    | @@ -127,7 +125,13 @@ class GitOps:
+     |                    |              else:
+     |                    |                  self.repo.git.add(A=True)
+     |                    |  
+     |                    | -            if not self.repo.index.diff("HEAD") and self.has_commits():
+     |                    | +            # ---- Initial commit (no HEAD yet) ----
+     |                    | +            if not self.has_commits():
+     |                    | +                self.repo.index.commit(message)
+     |                    | +                return f"Initial commit created with message: '{message}'"
+     |                    | +
+     |                    | +            # ---- Normal repo ----
+     |                    | +            if not self.repo.index.diff("HEAD"):
+     |                    |                  return "No changes to commit."
+     |                    |  
+     |                    |              self.repo.index.commit(message)
+INFO | gitops-demo        | Reading file: README.md                                                                                                  demo.py:48
+INFO | gitops-demo        | Content of README.md:                                                                                                    demo.py:54
+     |                    | # RepoRanger
+     |                    | **Your Autonomous DevOps & Documentation Partner.**
+     |                    | RepoRanger is an agentic AI system built with **LangChain** and **LangGraph**. It doesn't just chat with your code; it
+     |                    | actively maintains it. It acts as a Senior Engineer that lives in your repository, handling documentation, code
+     |                    | quality, git operations, and system visualization autonomously.
+     |                    | ## 🧠 Skills (Agents)
+     |                    | RepoRanger operates using a multi-agent orchestration graph. Each node in the graph represents a specialized skill:
+     |                    | ### 1. The Contextual Scribe ✍️
+     |                    | * **Role:** Documentation & PR Storytelling.
+     |                    | * **Capability:** Analyzes the *intent* behind code changes, not just the diff. Generates rich PR descriptions, updates
+     |                    | `CHANGELOG.md` based on semantic analysis, and ensures documentation stays in sync with code logic.
+     |                    | ### 2. The Code Steward 🛡️
+     |                    | * **Role:** Proactive Maintenance.
+     |                    | * **Capability:** Audits dependencies for security risks, identifies dead code, and enforces code style. It can
+     |                    | auto-fix linting errors and push the clean-up commits directly to your branch.
+     |                    | ### 3. The Git Tactician ⚔️
+     |                    | * **Role:** Complex Version Control.
+     |                    | * **Capability:** Handles "messy" git operations. Capable of semantic merge conflict resolution, smart cherry-picking
+     |                    | across branches, and cleaning up stale feature branches safely.
+     |                    | ### 4. The Visual Architect 📐
+     |                    | * **Role:** Dynamic Visualization.
+     |                    | * **Capability:** Auto-generates Mermaid.js diagrams for class hierarchies, dependency graphs, and logic flows. If the
+     |                    | code structure changes, the diagrams in your docs update automatically.
+     |                    | ## 🛠️ Tech Stack
+     |                    | * **Orchestration:** LangGraph (Stateful multi-agent workflows)
+     |                    | * **Framework:** LangChain
+     |                    | * **LLM:** GPT-4o / Claude 3.5 Sonnet
+     |                    | * **Git Operations:** GitPython
+     |                    | * **Parsing:** Tree-sitter / AST
+     |                    | ## 🚀 Getting Started
+     |                    | ### Prerequisites
+     |                    | * Python 3.10+
+     |                    | * Poetry (recommended) or Pip
+     |                    | * GitHub Personal Access Token (PAT)
+     |                    | ### Installation
+     |                    | 1.  **Clone the RepoRanger:**
+     |                    |     ```bash
+     |                    |     git clone [https://github.com/yourusername/reporanger.git](https://github.com/yourusername/reporanger.git)
+     |                    |     cd reporanger
+     |                    |     ```
+     |                    | 2.  **Install Dependencies:**
+     |                    |     ```bash
+     |                    |     poetry install
+     |                    |     # OR
+     |                    |     pip install -r requirements.txt
+     |                    |     ```
+     |                    | 3.  **Configure Environment:**
+     |                    |     ```bash
+     |                    |     cp .env.example .env
+     |                    |     # Add your OPENAI_API_KEY and GITHUB_ACCESS_TOKEN
+     |                    |     ```
+     |                    | 4.  **Run the Agent:**
+     |                    |     ```bash
+     |                    |     python main.py
+     |                    |     ```
+     |                    | ## 🤝 Contributing
+     |                    | Contributions are welcome! Please ensure that any PR includes updated tests.
+     |                    | ## 📄 License
+     |                    | MIT
+INFO | gitops-demo        | Switching to branch: gitops-demo-branch                                                                                  demo.py:60
+INFO | gitops-demo        | Repository has no commits yet. Create an initial commit before switching branches.                                       demo.py:63
+INFO | gitops-demo        | Attempting to commit changes                                                                                             demo.py:68
+INFO | gitops-demo        | GitOps demo completed successfully                                                                                       demo.py:82
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:13:57
+#---------------------------------------------------------------------#
+INFO | parser-demo        | Starting PythonCodeParser demo                                                                                          demo1.py:10
+INFO | parser-demo        | Repository root: .                                                                                                      demo1.py:11
+INFO | parser-demo        | PythonCodeParser initialized successfully                                                                               demo1.py:18
+INFO | parser-demo        | Indexed modules: 14                                                                                                     demo1.py:19
+INFO | parser-demo        | Total Python files found: 14                                                                                            demo1.py:20
+INFO | parser-demo        | Analyzing file: src/tools/gitops.py                                                                                     demo1.py:29
+INFO | parser-demo        | Imports found: 3                                                                                                        demo1.py:41
+INFO | parser-demo        | Import | line 1 | type=absolute | module=os | names=['os']                                                              demo1.py:43
+INFO | parser-demo        | Import | line 2 | type=absolute | module=typing | names=['List', 'Optional']                                            demo1.py:43
+INFO | parser-demo        | Import | line 3 | type=absolute | module=git | names=['Repo', 'GitCommandError', 'InvalidGitRepositoryError',           demo1.py:43
+     |                    | 'NoSuchPathError']
+INFO | parser-demo        | Functions found: 8                                                                                                      demo1.py:52
+INFO | parser-demo        | Function | __init__ | line=15 | args=['self', 'repo_path'] | complexity=3 | async=False | method=True                   demo1.py:54
+INFO | parser-demo        | Function | has_commits | line=32 | args=['self'] | complexity=1 | async=False | method=True                             demo1.py:54
+INFO | parser-demo        | Function | get_current_branch | line=42 | args=['self'] | complexity=2 | async=False | method=True                      demo1.py:54
+INFO | parser-demo        | Function | switch_branch | line=50 | args=['self', 'branch_name', 'create_new'] | complexity=5 | async=False |          demo1.py:54
+     |                    | method=True
+INFO | parser-demo        | Function | get_diff | line=82 | args=['self'] | complexity=3 | async=False | method=True                                demo1.py:54
+INFO | parser-demo        | Function | get_file_content | line=98 | args=['self', 'file_path'] | complexity=3 | async=False | method=True           demo1.py:54
+INFO | parser-demo        | Function | commit_changes | line=117 | args=['self', 'message', 'files'] | complexity=5 | async=False | method=True     demo1.py:54
+INFO | parser-demo        | Function | push_changes | line=143 | args=['self', 'remote_name', 'branch_name'] | complexity=4 | async=False |         demo1.py:54
+     |                    | method=True
+INFO | parser-demo        | Classes found: 1                                                                                                        demo1.py:66
+INFO | parser-demo        | Class | GitOps | line=6 | bases=[] | methods=['__init__', 'has_commits', 'get_current_branch', 'switch_branch',         demo1.py:68
+     |                    | 'get_diff', 'get_file_content', 'commit_changes', 'push_changes'] | dataclass=False
+INFO | parser-demo        | Code metrics:                                                                                                           demo1.py:80
+INFO | parser-demo        |   Total lines           : 165                                                                                           demo1.py:81
+INFO | parser-demo        |   Code lines            : 83                                                                                            demo1.py:82
+INFO | parser-demo        |   Comment lines         : 15                                                                                            demo1.py:83
+INFO | parser-demo        |   Blank lines           : 29                                                                                            demo1.py:84
+INFO | parser-demo        |   Docstring lines       : 38                                                                                            demo1.py:85
+INFO | parser-demo        |   Imports               : 3                                                                                             demo1.py:86
+INFO | parser-demo        |   Functions             : 8                                                                                             demo1.py:87
+INFO | parser-demo        |   Classes               : 1                                                                                             demo1.py:88
+INFO | parser-demo        |   Methods               : 8                                                                                             demo1.py:89
+INFO | parser-demo        |   Cyclomatic complexity : 26                                                                                            demo1.py:90
+INFO | parser-demo        |   Max nesting depth     : 3                                                                                             demo1.py:91
+INFO | parser-demo        |   Avg function length   : 10.38                                                                                         demo1.py:92
+INFO | parser-demo        | Building dependency graph                                                                                               demo1.py:97
+INFO | parser-demo        | Dependency graph size: 1                                                                                               demo1.py:100
+INFO | parser-demo        | src/tools/gitops.py -> []                                                                                              demo1.py:102
+INFO | parser-demo        | No circular dependencies detected                                                                                      demo1.py:113
+INFO | parser-demo        | No unused imports in src/tools/gitops.py                                                                               demo1.py:127
+INFO | parser-demo        | Impact analysis:                                                                                                       demo1.py:133
+INFO | parser-demo        |   File                : src/tools/gitops.py                                                                            demo1.py:134
+INFO | parser-demo        |   Direct dependents   : []                                                                                             demo1.py:135
+INFO | parser-demo        |   Transitive dependents: []                                                                                            demo1.py:136
+INFO | parser-demo        |   Total impact        : 0                                                                                              demo1.py:137
+INFO | parser-demo        | Generating analysis report                                                                                             demo1.py:142
+INFO | parser-demo        | ================================================================================                                       demo1.py:144
+     |                    | PYTHON CODE ANALYSIS REPORT
+     |                    | ================================================================================
+     |                    | Repository: /home/shreyas/Desktop/Shreyas/RepoRanger
+     |                    | Total Files: 14
+     |                    | Successfully Parsed: 1
+     |                    | Failed to Parse: 0
+     |                    | Total Imports: 3
+     |                    | Total Functions: 8
+     |                    | Total Classes: 1
+     |                    | ================================================================================
+     |                    | CIRCULAR DEPENDENCIES
+     |                    | ================================================================================
+     |                    | None detected.
+INFO | parser-demo        | PythonCodeParser demo completed successfully                                                                           demo1.py:146
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:25:04
+#---------------------------------------------------------------------#
+INFO | steward-demo       | Starting Code Steward demo                                                                                        agent_1_demo.py:9
+INFO | steward-demo       | Repo path      : .                                                                                               agent_1_demo.py:22
+INFO | steward-demo       | Target branch  : HEAD                                                                                            agent_1_demo.py:23
+INFO | steward-demo       | Invoking steward_node                                                                                            agent_1_demo.py:28
+INFO | steward-demo       | Steward found no issues                                                                                          agent_1_demo.py:40
+INFO | steward-demo       | No artifacts generated                                                                                           agent_1_demo.py:56
+INFO | steward-demo       | Steward messages:                                                                                                agent_1_demo.py:63
+INFO | steward-demo       |  - Steward found no Python changes to audit.                                                                     agent_1_demo.py:65
+INFO | steward-demo       | Code Steward demo completed successfully                                                                         agent_1_demo.py:69
+
+
+#---------------------------------------------------------------------#
+Run : 2025-12-15 10:26:02
+#---------------------------------------------------------------------#
+INFO | steward-demo       | Starting Code Steward demo                                                                                        agent_1_demo.py:9
+INFO | steward-demo       | Repo path      : .                                                                                               agent_1_demo.py:22
+INFO | steward-demo       | Target branch  : HEAD                                                                                            agent_1_demo.py:23
+INFO | steward-demo       | Invoking steward_node                                                                                            agent_1_demo.py:28
+INFO | steward-demo       | Steward found no issues                                                                                          agent_1_demo.py:40
+INFO | steward-demo       | No artifacts generated                                                                                           agent_1_demo.py:56
+INFO | steward-demo       | Steward messages:                                                                                                agent_1_demo.py:63
+INFO | steward-demo       |  - Steward found no Python changes to audit.                                                                     agent_1_demo.py:65
+INFO | steward-demo       | Code Steward demo completed successfully                                                                         agent_1_demo.py:69

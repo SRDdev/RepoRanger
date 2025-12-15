@@ -1,0 +1,26 @@
+# config.yaml
+
+project:
+  name: "RepoRanger"
+  version: "0.1.0"
+
+llm:
+  provider: "google" # Switch to 'openai' or 'anthropic' easily here
+  
+  # Default settings for general tasks
+  default:
+    model: "gemini-1.5-pro-latest"
+    temperature: 0.1
+    max_tokens: 8192
+    top_p: 0.95
+    top_k: 64
+  
+  # specific overrides for creative tasks (e.g. Scribe writing docs)
+  creative:
+    model: "gemini-1.5-flash"
+    temperature: 0.7
+    max_tokens: 4096
+
+paths:
+  workspace: "./.reporanger_workspace"
+  repo_root: "./"
