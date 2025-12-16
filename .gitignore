@@ -14,3 +14,7 @@ tool_2_demo.py
 # RepoRanger build/run artifacts
 .reporanger_workspace/
 src/reporanger.egg-info/
+
+
+COMMIT_MESSAGE.txt
+PR_MESSAGE.txt

@@ -1,4 +1,4 @@
-# main.py - COMPLETE WORKING VERSION
+# main.py - COMPLETE WORKING VERSION WITH BRANCH SUBCOMMAND
 import os
 import argparse
 from dotenv import load_dotenv
@@ -19,20 +19,33 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Create smart branch
+  python main.py branch --intent "Add user authentication"
+  
+  # Specify branch type
+  python main.py branch --intent "Fix login bug" --type fix
+  
   # Generate commit message
   python main.py --mode commit
   
   # Generate PR documentation
   python main.py --mode pr --target-branch main
-  
-  # Code quality audit only
-  python main.py --mode audit
-  
-  # Full analysis
-  python main.py --mode full --target-branch main
         """
     )
     
+    # Add subparsers for different commands
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # --- BRANCH SUBCOMMAND ---
+    branch_parser = subparsers.add_parser('branch', help='Create smart branch')
+    branch_parser.add_argument('--intent', '-m', required=True, help='Branch purpose/intent')
+    branch_parser.add_argument('--type', '-t', choices=[
+        'feat', 'fix', 'hotfix', 'refactor', 'perf', 
+        'docs', 'test', 'chore', 'style', 'ci', 'build'
+    ], help='Branch type (auto-detected if not specified)')
+    branch_parser.add_argument('--no-commit', action='store_true', help='Skip initial commit')
+
+    # --- GLOBAL ARGUMENTS (For backward compatibility/Standard modes) ---
     parser.add_argument(
         "--target-branch",
         default="main",
@@ -59,19 +72,25 @@ Examples:
         border_style="green"
     ))
     
-    # Get current branch
+    # ========================================================================
+    # BRANCH COMMAND
+    # ========================================================================
+    if args.command == 'branch':
+        _handle_branch_creation(args)
+        return
+
+    # ========================================================================
+    # STANDARD MODES (Existing Logic)
+    # ========================================================================
     git_ops = GitOps(os.getcwd())
     current_branch = git_ops.get_current_branch()
     
     console.print(f"📍 Current Branch: [cyan]{current_branch}[/cyan]")
     
-    # ========================================================================
-    # COMMIT MODE - Direct execution (bypass graph)
-    # ========================================================================
+    # COMMIT MODE
     if args.mode == "commit":
         console.print(f"🎯 Mode: [yellow]Commit Message Generation[/yellow]\n")
         
-        # Ask for intent if not provided
         if not args.commit_intent:
             commit_intent = Prompt.ask(
                 "🧠 What is the main purpose of this commit?",
@@ -80,7 +99,6 @@ Examples:
         else:
             commit_intent = args.commit_intent
         
-        # Direct call to scribe (no graph complexity needed)
         from src.agents.scribe import scribe_node
         
         state = {
@@ -99,10 +117,7 @@ Examples:
         console.print("\n[bold green]✓ RepoRanger execution complete![/bold green]")
         return
     
-    # ========================================================================
-    # ALL OTHER MODES - Use graph
-    # ========================================================================
-    
+    # SETUP INITIAL STATE FOR GRAPH MODES
     if args.mode == "pr":
         console.print(f"🎯 Mode: [yellow]PR Documentation[/yellow]")
         console.print(f"🎯 Target Branch: [cyan]{args.target_branch}[/cyan]\n")
@@ -152,9 +167,56 @@ Examples:
     
     # Post-processing
     if args.mode == "pr" and final_state:
+        # Note: final_state is usually the last event dict from app.stream
+        # You may need to extract the actual state depending on your graph implementation
         _handle_pr_output(final_state, args.target_branch)
     
     console.print("\n[bold green]✓ RepoRanger execution complete![/bold green]")
+
+
+def _handle_branch_creation(args):
+    """Handle smart branch creation"""
+    from src.tools.gitops import GitOps
+    from src.tools.branch_manager import BranchManager
+    
+    console.print(Panel(
+        "🌿 [bold green]Smart Branch Creator[/bold green]",
+        border_style="green"
+    ))
+    
+    git_ops = GitOps(os.getcwd())
+    manager = BranchManager(git_ops)
+    
+    console.print(f"\n💭 Intent: [cyan]{args.intent}[/cyan]")
+    
+    if args.type:
+        console.print(f"🏷️  Type: [yellow]{args.type}[/yellow] (specified)")
+    else:
+        console.print("🤖 Detecting branch type...")
+    
+    with console.status("[bold yellow]Generating branch name...[/bold yellow]"):
+        try:
+            branch_name, branch_type = manager.create_smart_branch(
+                user_intent=args.intent,
+                auto_detect_type=(args.type is None),
+                suggested_type=args.type,
+                create_initial_commit=(not args.no_commit)
+            )
+            
+            console.print(Panel(
+                f"[bold green]✅ Branch created and checked out![/bold green]\n\n"
+                f"🌿 Branch: [cyan]{branch_name}[/cyan]\n"
+                f"🏷️  Type: [yellow]{branch_type}[/yellow]\n\n"
+                f"You can now start working on your changes.\n"
+                f"When ready to commit:\n"
+                f"  [dim]git add .[/dim]\n"
+                f"  [dim]python main.py --mode commit[/dim]",
+                border_style="green",
+                title="🎉 Success"
+            ))
+        
+        except Exception as e:
+            console.print(f"[red]❌ Error creating branch: {e}[/red]")
 
 
 def _handle_commit_output(state):
@@ -180,16 +242,16 @@ def _handle_commit_output(state):
             ))
         else:
             console.print("[yellow]⚠️  Commit message generated but file not found[/yellow]")
-            console.print(f"[dim]Check: {commit_artifact['file_path']}[/dim]")
     else:
         console.print("\n[yellow]⚠️  No commit message generated[/yellow]")
-        console.print("[dim]Hint: Make sure you have staged changes:[/dim]")
-        console.print("[dim]  git add <files>[/dim]")
 
 
 def _handle_pr_output(state, target_branch):
     """Handle PR mode output"""
-    artifacts = state.get("artifacts", [])
+    # Depending on graph output structure, extract state
+    actual_state = state.get('scribe', state) if isinstance(state, dict) else state
+    artifacts = actual_state.get("artifacts", [])
+    
     pr_artifact = next(
         (a for a in artifacts if a.get("id") == "pr_document"),
         None
