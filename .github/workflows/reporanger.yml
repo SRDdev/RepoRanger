@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Required permissions for RepoRanger to post the analysis back to the PR
+# Grants RepoRanger permission to post the analysis back to the PR
 permissions:
   contents: read
   pull-requests: write
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for Scribe to analyze Git history
+          fetch-depth: 0 # Required for Scribe to analyze full Git history
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -28,15 +28,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Installs dependencies from your updated [project] section in pyproject.toml
+          # Installs dependencies from the [project] section of your pyproject.toml
           pip install .
 
       - name: Run RepoRanger
         env:
-          # Ensure this secret is added in your GitHub Repo Settings > Secrets > Actions
+          # Ensure GOOGLE_API_KEY is added to your GitHub Repo Secrets
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          # Provides the current branch name to bypass detached HEAD issues
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
-          # Executes the PR mode specifically for the CI environment
+          # Executes RepoRanger in PR mode
           python main.py \
             --target-branch ${{ github.base_ref }} \
             --mode pr
@@ -57,12 +59,12 @@ jobs:
                 repo: context.repo.repo,
                 body: prBody
               });
-              console.log("Successfully posted RepoRanger analysis to PR.");
+              console.log("Successfully posted analysis to Pull Request.");
             } else {
-              console.log("PR_Document.md not found. Ensure the Scribe node is functioning correctly.");
+              console.log("PR_Document.md not found. Verification of Scribe node recommended.");
             }
 
-      - name: Upload Analysis Artifacts
+      - name: Upload Workspace Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: reporanger-analysis-artifacts
