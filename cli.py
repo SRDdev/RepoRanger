@@ -1,4 +1,3 @@
-# cli.py
 #!/usr/bin/env python3
 """
 RepoRanger CLI - Friendly Git-aware interface
@@ -7,12 +6,13 @@ import click
 import subprocess
 import os
 from rich.console import Console
+from rich.panel import Panel
 
 console = Console()
 
 @click.group()
 def cli():
-    """RepoRanger - Your Autonomous Code Steward"""
+    """🚀 RepoRanger - Your Autonomous Code Steward"""
     pass
 
 
@@ -20,7 +20,6 @@ def cli():
 @click.option('--intent', '-m', help='Commit intent/message')
 def commit(intent):
     """Generate commit message for staged changes"""
-    
     # Check for staged changes
     result = subprocess.run(
         ['git', 'diff', '--cached', '--quiet'],
@@ -32,7 +31,6 @@ def commit(intent):
         console.print("[yellow]Hint: Use 'git add <files>' first[/yellow]")
         return
     
-    # Build command
     cmd = ['python', 'main.py', '--mode', 'commit']
     if intent:
         cmd.extend(['--commit-intent', intent])
@@ -43,7 +41,7 @@ def commit(intent):
 @cli.command()
 @click.option('--target', '-t', default='main', help='Target branch')
 def pr(target):
-    """Generate PR documentation"""
+    """Generate PR documentation (Steward -> Scribe)"""
     subprocess.run([
         'python', 'main.py',
         '--mode', 'pr',
@@ -52,12 +50,32 @@ def pr(target):
 
 
 @cli.command()
+def docs():
+    """Generate full system documentation (CODE_DOCS.md)"""
+    subprocess.run([
+        'python', 'main.py',
+        '--mode', 'docs'
+    ])
+
+
+@cli.command()
 @click.option('--target', '-t', default='main', help='Target branch')
 def audit(target):
-    """Run code quality audit"""
+    """Run code quality audit only (Steward)"""
     subprocess.run([
         'python', 'main.py',
         '--mode', 'audit',
+        '--target-branch', target
+    ])
+
+
+@cli.command()
+@click.option('--target', '-t', default='main', help='Target branch')
+def full(target):
+    """Run full analysis swarm (Architect -> Steward -> Tactician -> Scribe)"""
+    subprocess.run([
+        'python', 'main.py',
+        '--mode', 'full',
         '--target-branch', target
     ])
 
@@ -73,7 +91,6 @@ def branch(intent, type, no_commit):
     """Create a smart branch with AI-generated name"""
     from src.tools.gitops import GitOps
     from src.tools.branch_manager import BranchManager
-    from rich.panel import Panel
     
     console.print(Panel(
         "🌿 [bold green]Smart Branch Creator[/bold green]",
@@ -90,26 +107,27 @@ def branch(intent, type, no_commit):
     else:
         console.print("🤖 Detecting branch type...")
     
-    # Create branch
     with console.status("[bold yellow]Generating branch name...[/bold yellow]"):
-        branch_name, branch_type = manager.create_smart_branch(
-            user_intent=intent,
-            auto_detect_type=(type is None),
-            suggested_type=type,
-            create_initial_commit=(not no_commit)
-        )
-    
-    console.print(Panel(
-        f"[bold green]✅ Branch created and checked out![/bold green]\n\n"
-        f"🌿 Branch: [cyan]{branch_name}[/cyan]\n"
-        f"🏷️  Type: [yellow]{branch_type}[/yellow]\n\n"
-        f"You can now start working on your changes.\n"
-        f"When ready to commit:\n"
-        f"  [dim]git add .[/dim]\n"
-        f"  [dim]rr commit[/dim]",
-        border_style="green",
-        title="🎉 Success"
-    ))
+        try:
+            branch_name, branch_type = manager.create_smart_branch(
+                user_intent=intent,
+                auto_detect_type=(type is None),
+                suggested_type=type,
+                create_initial_commit=(not no_commit)
+            )
+            
+            console.print(Panel(
+                f"[bold green]✅ Branch created and checked out![/bold green]\n\n"
+                f"🌿 Branch: [cyan]{branch_name}[/cyan]\n"
+                f"🏷️  Type: [yellow]{branch_type}[/yellow]\n\n"
+                f"Usage:\n"
+                f"  [dim]git add .[/dim]\n"
+                f"  [dim]rr commit[/dim]",
+                border_style="green",
+                title="🎉 Success"
+            ))
+        except Exception as e:
+            console.print(f"[red]❌ Error: {e}[/red]")
 
 if __name__ == '__main__':
     cli()

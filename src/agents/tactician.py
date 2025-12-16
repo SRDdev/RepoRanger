@@ -6,85 +6,69 @@ from src.state import RepoState
 from src.tools.gitops import GitOps
 from src.utils.workspace import save_artifact
 from src.utils.config import cfg
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
+console = Console()
 
 def tactician_node(state: RepoState) -> RepoState:
     """
     Handles Git operations intelligently:
-    - Does NOT auto-create branches
-    - Does NOT auto-commit
-    - Provides clear instructions for user
+    - Provides structured next steps and command suggestions
+    - Uses Rich for professional console formatting
     """
-    print("--- ⚔️  Tactician: Preparing Git Operations ---")
-    
     repo_path = state.get("repo_path", cfg.get("paths.repo_root"))
     git_ops = GitOps(repo_path)
     
     artifacts = state.get("artifacts", [])
     code_issues = state.get("code_issues", [])
     
-    # Get current branch info
+    # Get branch info
     current_branch = git_ops.get_current_branch()
     target_branch = state.get("target_branch", "main")
     
-    # Determine what actions are recommended
     recommendations = []
     git_commands = []
     
-    # 1. Check if PR documentation exists
+    # Logic Checks
     pr_docs = [a for a in artifacts if a.get("created_by") == "scribe"]
     has_pr_doc = len(pr_docs) > 0
     
-    # 2. Check if there are critical issues
     critical_issues = [i for i in code_issues if i.get("severity") == "critical"]
     has_critical = len(critical_issues) > 0
     
-    # 3. Check if we have refactor suggestions
     refactor_plans = [a for a in artifacts if a.get("type") == "refactor_plan"]
     has_refactors = len(refactor_plans) > 0
     
-    # Build recommendations
+    # Build Recommendations
     if has_critical:
-        recommendations.append(
-            "⚠️  **Critical issues detected** - Fix before pushing"
-        )
+        recommendations.append("Critical issues detected - Fix before pushing")
     
     if has_refactors:
-        recommendations.append(
-            "💡 **Refactor suggestions available** - Review before committing"
-        )
+        recommendations.append("Refactor suggestions available - Review before committing")
     
-    # Generate git workflow
     if has_pr_doc:
         pr_path = pr_docs[0]["file_path"]
-        
-        recommendations.append(
-            f"📄 **PR documentation generated**: `{pr_path}`"
-        )
-        
-        # Suggest adding PR doc to commit
+        recommendations.append(f"PR documentation generated: {pr_path}")
         git_commands.extend([
-            f"# Add PR documentation to commit",
             f"cp {pr_path} PR_Document.md",
-            f"git add PR_Document.md"
+            "git add PR_Document.md"
         ])
     
-    # Standard git workflow
+    # Standard Git Workflow
     if not has_critical:
         git_commands.extend([
-            "",
-            "# Standard workflow",
             "git add .",
-            f"git commit -m 'docs: Update from RepoRanger analysis'",
+            "git commit -m 'docs: Update from RepoRanger analysis'",
             f"git push origin {current_branch}"
         ])
         
         if current_branch not in ["main", "master", target_branch]:
-            git_commands.extend([
-                "",
-                "# Create PR (GitHub CLI)",
-                f"gh pr create --base {target_branch} --title 'Your PR Title' --body-file PR_Document.md"
-            ])
+            git_commands.append(
+                f"gh pr create --base {target_branch} --title 'Update from RepoRanger' --body-file PR_Document.md"
+            )
     
     # Generate instructions file
     instructions = _generate_instructions(
@@ -95,27 +79,33 @@ def tactician_node(state: RepoState) -> RepoState:
         artifacts=artifacts,
         has_critical=has_critical
     )
+    instructions_path = save_artifact(instructions, "md", "Git")
     
-    instructions_path = save_artifact(instructions, "md")
+    # --- Rich Console Output ---
+    content = []
     
-    # Also print to console for immediate visibility
-    print("\n" + "="*60)
-    print("📋 NEXT STEPS")
-    print("="*60)
-    
-    for rec in recommendations:
-        print(f"  {rec}")
-    
+    if recommendations:
+        rec_table = Table.grid(padding=(0, 1))
+        rec_table.add_column(style="bold yellow")
+        for rec in recommendations:
+            rec_table.add_row(f"* {rec}")
+        content.append(rec_table)
+        content.append("")
+
     if git_commands and not has_critical:
-        print("\n💻 Suggested Commands:")
+        content.append(Text("Suggested Commands:", style="bold cyan"))
         for cmd in git_commands:
-            if cmd and not cmd.startswith('#'):
-                print(f"  $ {cmd}")
-    
-    print(f"\n📄 Full instructions: {instructions_path}")
-    print("="*60 + "\n")
-    
-    print("--- ⚔️  Tactician: Ready ---\n")
+            content.append(Text(f"  $ {cmd}", style="bright_white"))
+        content.append("")
+
+    content.append(Text(f"Full instructions saved to: {instructions_path}", style="dim"))
+
+    console.print(Panel(
+        Group(*content),
+        title="Tactician: Recommended Next Steps",
+        title_align="left",
+        border_style="blue"
+    ))
     
     return {
         "artifacts": [{
@@ -126,11 +116,9 @@ def tactician_node(state: RepoState) -> RepoState:
             "created_by": "tactician"
         }],
         "messages": [HumanMessage(
-            content=f"Tactician prepared workflow instructions. "
-                    f"{'⚠️ Address critical issues first.' if has_critical else '✅ Ready to commit.'}"
+            content=f"Tactician prepared workflow instructions. Status: {'Action required' if has_critical else 'Ready'}."
         )]
     }
-
 
 def _generate_instructions(
     current_branch: str,
@@ -140,73 +128,47 @@ def _generate_instructions(
     artifacts: list,
     has_critical: bool
 ) -> str:
-    """Generate detailed markdown instructions"""
+    """Generate professional markdown instructions without emojis"""
+    instructions = [
+        "# Git Workflow Instructions",
+        f"**Current Branch:** {current_branch}",
+        f"**Target Branch:** {target_branch}",
+        f"**Generated:** {_get_timestamp()}",
+        "---",
+        ""
+    ]
     
-    instructions = f"""# ⚔️ Git Workflow Instructions
-
-**Current Branch:** `{current_branch}`  
-**Target Branch:** `{target_branch}`  
-**Generated:** {_get_timestamp()}
-
----
-
-"""
-    
-    # Recommendations section
     if recommendations:
-        instructions += "## 📋 Recommendations\n\n"
+        instructions.append("## Recommendations")
         for rec in recommendations:
-            instructions += f"{rec}\n\n"
+            instructions.append(f"* {rec}")
+        instructions.append("")
     
-    # Critical blocker
     if has_critical:
-        instructions += """## 🚨 CRITICAL ISSUES DETECTED
-
-**Action Required:** Fix critical issues before pushing
-
-Review the Steward report for details, then re-run RepoRanger:
-```bash
-# Fix issues, then re-run
-python main.py --target-branch {target}
-```
-
-""".format(target=target_branch)
-        return instructions
+        instructions.append("## Critical Issues Detected")
+        instructions.append("Action Required: Fix critical issues before pushing.")
+        instructions.append("Review the Steward report and re-run analysis after fixing.")
+        return "\n".join(instructions)
     
-    # Git workflow
     if git_commands:
-        instructions += "## 💻 Git Workflow\n\n"
-        instructions += "```bash\n"
+        instructions.append("## Git Workflow")
+        instructions.append("```bash")
         for cmd in git_commands:
-            instructions += f"{cmd}\n"
-        instructions += "```\n\n"
+            instructions.append(cmd)
+        instructions.append("```")
+        instructions.append("")
     
-    # Artifacts reference
     if artifacts:
-        instructions += "## 📦 Generated Artifacts\n\n"
+        instructions.append("## Generated Artifacts")
         for art in artifacts:
-            instructions += f"- **{art['description']}**\n"
-            instructions += f"  - Type: `{art['type']}`\n"
-            instructions += f"  - Path: `{art['file_path']}`\n"
-            instructions += f"  - Creator: `{art['created_by']}`\n\n"
-    
-    # Manual PR creation (GitHub web)
-    instructions += """## 🌐 Create PR Manually (GitHub Web)
+            instructions.append(f"* **{art['description']}** ({art['type']})")
+            instructions.append(f"  * Path: {art['file_path']}")
+        instructions.append("")
 
-1. Push your branch:
-```bash
-   git push origin {current}
-```
-
-2. Go to GitHub and create PR from `{current}` → `{target}`
-
-3. Copy content from `PR_Document.md` as PR description
-
-""".format(current=current_branch, target=target_branch)
-    
-    return instructions
-
+    return "\n".join(instructions)
 
 def _get_timestamp():
     from datetime import datetime
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+from rich.console import Group

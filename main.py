@@ -7,10 +7,12 @@ from dotenv import load_dotenv
 from src.graph import app
 from src.utils.config import cfg
 from src.tools.gitops import GitOps
+from src.tools.branch_manager import BranchManager
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
+from rich.table import Table
+from rich.rule import Rule
 
 console = Console()
 load_dotenv()
@@ -24,15 +26,11 @@ Examples:
   # Create smart branch
   python main.py branch --intent "Add user authentication"
   
-  # Generate commit message
-  python main.py --mode commit
-  
-  # Generate PR documentation
-  python main.py --mode pr --target-branch main
+  # Full analysis
+  python main.py --mode full --target-branch main
         """
     )
     
-    # Subparsers for commands
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # --- BRANCH COMMAND ---
@@ -41,52 +39,44 @@ Examples:
     branch_parser.add_argument('--type', '-t', choices=[
         'feat', 'fix', 'hotfix', 'refactor', 'perf', 
         'docs', 'test', 'chore', 'style', 'ci', 'build'
-    ], help='Branch type (auto-detected if not specified)')
+    ], help='Branch type')
     branch_parser.add_argument('--no-commit', action='store_true', help='Skip initial commit')
 
     # --- GLOBAL ARGUMENTS ---
-    parser.add_argument(
-        "--target-branch",
-        default="main",
-        help="Branch to compare against (for PR/full modes)"
-    )
-    parser.add_argument(
-        "--mode",
-        choices=["full", "pr", "commit", "audit"],
-        default="full",
-        help="Execution mode"
-    )
-    parser.add_argument(
-        "--commit-intent",
-        help="Your intent for the commit (used with --mode commit)"
-    )
+    parser.add_argument("--target-branch", default="main", help="Target branch")
+    parser.add_argument("--mode", choices=["full", "pr", "commit", "audit", "docs"], default="full")
+    parser.add_argument("--commit-intent", help="Commit intent")
     
     args = parser.parse_args()
     
-    # Banner
+    # Header
     console.print(Panel(
-        f"🚀 [bold green]{cfg.get('project.name', 'RepoRanger')}[/bold green] - Autonomous Code Steward",
-        border_style="green"
+        f"[bold blue]{cfg.get('project.name', 'RepoRanger').upper()}[/bold blue] | System Analysis Engine",
+        border_style="blue"
     ))
     
-    # 1. Handle Branch Creation Command
     if args.command == 'branch':
         _handle_branch_creation(args)
         return
 
-    # 2. Setup Git Context for Analysis Modes
     git_ops = GitOps(os.getcwd())
     current_branch = git_ops.get_current_branch()
-    console.print(f"📍 Current Branch: [cyan]{current_branch}[/cyan]")
     
-    # 3. Handle Commit Mode (Direct Node Execution)
+    # Session Info Table
+    info_table = Table.grid(padding=(0, 2))
+    info_table.add_column(style="dim")
+    info_table.add_column()
+    info_table.add_row("Active Branch:", f"[cyan]{current_branch}[/cyan]")
+    info_table.add_row("Target Branch:", f"[cyan]{args.target_branch}[/cyan]")
+    info_table.add_row("Execution Mode:", f"[yellow]{args.mode.upper()}[/yellow]")
+    console.print(info_table)
+    console.print(Rule(style="dim"))
+
     if args.mode == "commit":
         _execute_commit_mode(args)
         return
 
-    # 4. Handle Analysis Modes (Graph Execution)
     _execute_graph_mode(args, current_branch)
-
 
 # ========================================================================
 # COMMAND HANDLERS
@@ -94,18 +84,14 @@ Examples:
 
 def _handle_branch_creation(args):
     """Logic for smart branch creation and checkout"""
-    from src.tools.branch_manager import BranchManager
-    
-    console.print(Panel("🌿 [bold green]Smart Branch Creator[/bold green]", border_style="green"))
+    console.print("[bold yellow]Mode: Smart Branch Creator[/bold yellow]")
     
     git_ops = GitOps(os.getcwd())
     manager = BranchManager(git_ops)
     
-    console.print(f"\n💭 Intent: [cyan]{args.intent}[/cyan]")
-    if not args.type:
-        console.print("🤖 Detecting branch type...")
-
-    with console.status("[bold yellow]Generating branch name...[/bold yellow]"):
+    console.print(f"Intent: [cyan]{args.intent}[/cyan]")
+    
+    with console.status("[dim]Analyzing intent and generating branch name...", spinner="dots"):
         try:
             branch_name, branch_type = manager.create_smart_branch(
                 user_intent=args.intent,
@@ -114,26 +100,29 @@ def _handle_branch_creation(args):
                 create_initial_commit=(not args.no_commit)
             )
             
-            console.print(Panel(
-                f"[bold green]✅ Branch created and checked out![/bold green]\n\n"
-                f"🌿 Branch: [cyan]{branch_name}[/cyan]\n"
-                f"🏷️  Type: [yellow]{branch_type}[/yellow]\n\n"
-                f"Usage:\n"
-                f"  [dim]git add .[/dim]\n"
-                f"  [dim]python main.py --mode commit[/dim]",
-                border_style="green",
-                title="🎉 Success"
-            ))
+            output = [
+                f"Branch Created: [cyan]{branch_name}[/cyan]",
+                f"Branch Type:    [yellow]{branch_type}[/yellow]",
+                "",
+                "[bold]Next Steps:[/bold]",
+                "1. git add .",
+                "2. rr commit"
+            ]
+            
+            console.print(Panel("\n".join(output), title="Success", border_style="green"))
         except Exception as e:
-            console.print(f"[red]❌ Error: {e}[/red]")
-
+            console.print(f"[red]Error:[/red] {e}")
 
 def _execute_commit_mode(args):
     """Directly calls the scribe agent for commit messages"""
     from src.agents.scribe import scribe_node
     
-    console.print(f"🎯 Mode: [yellow]Commit Message Generation[/yellow]\n")
-    intent = args.commit_intent or Prompt.ask("🧠 Commit intent?", default="General improvements")
+    console.print("[bold yellow]Mode: Commit Message Generation[/bold yellow]")
+    
+    intent = args.commit_intent
+    if not intent:
+        from rich.prompt import Prompt
+        intent = Prompt.ask("Enter commit intent", default="General improvements")
     
     state = {
         "repo_path": os.getcwd(),
@@ -142,14 +131,12 @@ def _execute_commit_mode(args):
         "artifacts": [], "messages": [], "code_issues": []
     }
     
-    console.print("[bold yellow]Generating message...[/bold yellow]\n")
-    result = scribe_node(state)
-    _handle_commit_output(result)
-    console.print("\n[bold green]✓ Execution complete![/bold green]")
-
+    with console.status("[dim]Generating commit message...", spinner="dots"):
+        result = scribe_node(state)
+        _handle_commit_output(result)
 
 def _execute_graph_mode(args, current_branch):
-    """Runs the LangGraph pipeline for audit/pr/full modes"""
+    """Runs pipeline and formats per-agent results"""
     initial_state = {
         "repo_path": os.getcwd(),
         "target_branch": args.target_branch,
@@ -158,64 +145,89 @@ def _execute_graph_mode(args, current_branch):
         "artifacts": [], "messages": [], "code_issues": []
     }
     
-    console.print(f"🎯 Mode: [yellow]{args.mode.upper()}[/yellow]")
-    console.print(f"🎯 Target: [cyan]{args.target_branch}[/cyan]\n")
-    console.print("[bold yellow]Running Analysis Pipeline...[/bold yellow]\n")
+    console.print("\n[bold]STARTING ANALYSIS PIPELINE[/bold]\n", style="dim")
     
     final_state = None
-    for event in app.stream(initial_state):
-        final_state = event
+    with console.status("[dim]Processing pipeline nodes...", spinner="dots"):
+        for event in app.stream(initial_state):
+            node_name = list(event.keys())[0]
+            final_state = event[node_name]
+            _render_node_summary(node_name, final_state)
     
-    if args.mode == "pr" and final_state:
+    if args.mode in ["pr", "full"]:
         _handle_pr_output(final_state, args.target_branch)
     
-    console.print("\n[bold green]✓ Execution complete![/bold green]")
-
+    console.print(f"\n[bold green]Pipeline execution finished successfully.[/bold green]")
 
 # ========================================================================
 # OUTPUT FORMATTERS
 # ========================================================================
 
+def _render_node_summary(node_name: str, state: dict):
+    """Prints a clean, boxed summary of what each agent produced"""
+    artifacts = state.get("artifacts", [])
+    issues = state.get("code_issues", [])
+    
+    if not artifacts and not issues:
+        return
+
+    content = []
+    
+    # List Artifacts
+    for art in artifacts:
+        if art.get("created_by") == node_name:
+            content.append(f"Artifact: [bold]{art['description']}[/bold]")
+            content.append(f"Path:     [dim]{art['file_path']}[/dim]\n")
+
+    # List Code Issues (for Steward)
+    if node_name == "steward" and issues:
+        content.append("[bold red]Analysis Findings:[/bold red]")
+        for issue in issues[:5]:
+            sev = issue.get('severity', 'info').upper()
+            content.append(f"[{sev}] {issue['file']}: {issue['message']}")
+        if len(issues) > 5:
+            content.append(f"[dim]... and {len(issues)-5} more issues in full report.[/dim]")
+
+    if content:
+        console.print(Panel("\n".join(content).strip(), title=f"Agent: {node_name.capitalize()}", title_align="left", border_style="dim"))
+
 def _handle_commit_output(state):
     artifacts = state.get("artifacts", [])
-    if any(a.get("type") == "commit_msg" for a in artifacts) and os.path.exists("COMMIT_MESSAGE.txt"):
+    if any(a.get("type") == "commit_msg" for a in artifacts):
         console.print(Panel(
-            "✨ [bold green]Commit message ready![/bold green]\n\n"
+            "Commit message ready.\n\n"
             "Review: [cyan]cat COMMIT_MESSAGE.txt[/cyan]\n"
             "Apply:  [cyan]git commit -F COMMIT_MESSAGE.txt[/cyan]",
+            title="Success",
             border_style="green"
         ))
     else:
-        console.print("[yellow]⚠️  No commit message generated.[/yellow]")
-
+        console.print("[red]Error:[/red] No commit message generated.")
 
 def _handle_pr_output(state, target_branch):
-    """Dynamic PR command output with fork-safety"""
+    """Final summary for PR creation"""
     actual_state = state.get('scribe', state) if isinstance(state, dict) else state
-    
     git_ops = GitOps(os.getcwd())
     current_branch = git_ops.get_current_branch()
     
-    # Try to get GitHub username for fork-safe commands
     try:
         gh_user = subprocess.check_output(["gh", "api", "user", "-q", ".login"], text=True).strip()
     except:
-        gh_user = "YOUR_USERNAME"
+        gh_user = "USER"
 
-    suggested_title = actual_state.get("pr_title", f"PR: {current_branch}")
+    suggested_title = actual_state.get("pr_title", f"Update: {current_branch}")
 
-    console.print(Panel(
-        f"[bold green]✅ PR documentation generated![/bold green]\n\n"
-        f"[bold white]1. Push changes:[/bold white]\n"
-        f"   [cyan]git push origin {current_branch}[/cyan]\n\n"
-        f"[bold white]2. Create Pull Request:[/bold white]\n"
-        f"   [cyan]gh pr create --base {target_branch} --head {current_branch} --title '{suggested_title}' --body-file PR_Document.md[/cyan]\n\n"
-        f"[yellow]💡 Note:[/yellow] If this is a fork and you lack permissions, use:\n"
-        f"[dim]gh pr create --base {target_branch} --head {gh_user}:{current_branch} ...[/dim]",
-        border_style="green",
-        title="PR Ready"
-    ))
-
+    output = [
+        "[bold cyan]STEP 1: PUSH CHANGES[/bold cyan]",
+        f"git push origin {current_branch}",
+        "",
+        "[bold cyan]STEP 2: CREATE PULL REQUEST[/bold cyan]",
+        f"gh pr create --base {target_branch} --head {gh_user}:{current_branch} --title '{suggested_title}' --body-file PR_Document.md",
+        "",
+        "[dim]Note: If permissions fail, append --web to the gh command.[/dim]"
+    ]
+    
+    console.print(Panel("\n".join(output), title="DEPLOYMENT STEPS", title_align="left", border_style="green", expand=False))
 
 if __name__ == "__main__":
     main()

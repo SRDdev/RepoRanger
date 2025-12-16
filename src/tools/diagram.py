@@ -1,12 +1,14 @@
 # src/tools/diagram.py
 from collections import defaultdict
 from typing import List, Dict, Any, Set
+import os
 
 from src.tools.parser import PythonCodeParser, ClassInfo, FileAnalysis
 
 class MermaidGenerator:
     """
     Translates the rich metadata from PythonCodeParser into Mermaid.js visualizations.
+   
     """
 
     def __init__(self, parser: PythonCodeParser):
@@ -15,6 +17,7 @@ class MermaidGenerator:
     def generate_architecture_map(self, files: List[str] = None) -> str:
         """
         Generates a high-level dependency graph of the modules with folder groupings.
+       
         """
         graph = self.parser.get_dependency_graph(files)
         if not graph:
@@ -65,10 +68,45 @@ class MermaidGenerator:
 
         return "\n".join(mermaid)
 
+    def generate_module_overview(self, file_path: str) -> str:
+        """
+        Generates a flowchart showing the internal structure of a module 
+        (Classes and Functions). Perfect for folder-level documentation.
+        """
+        analysis = self.parser.analyze_file(file_path)
+        if not analysis.classes and not analysis.functions:
+            return ""
+
+        clean_file_id = self._clean_id(file_path)
+        mermaid = [
+            f"%% Module Overview: {file_path}",
+            "graph LR",
+            "    classDef classNode fill:#e1f5fe,stroke:#01579b,stroke-width:2px;",
+            "    classDef funcNode fill:#f1f8e9,stroke:#33691e,stroke-width:1px;",
+        ]
+
+        mermaid.append(f"    subgraph {clean_file_id}[\"{os.path.basename(file_path)}\"]")
+        
+        # Add Classes
+        for cls in analysis.classes:
+            cls_id = f"{clean_file_id}_{self._clean_id(cls.name)}"
+            mermaid.append(f"        {cls_id}[[\"class: {cls.name}\"]]:::classNode")
+            for method in cls.methods:
+                method_id = f"{cls_id}_{self._clean_id(method)}"
+                mermaid.append(f"        {cls_id} -.-> {method_id}(\"{method}()\")")
+
+        # Add Standalone Functions
+        for func in analysis.functions:
+            func_id = f"{clean_file_id}_{self._clean_id(func.name)}"
+            mermaid.append(f"        {func_id}(\"fn: {func.name}()\"):::funcNode")
+
+        mermaid.append("    end")
+        return "\n".join(mermaid)
+
     def generate_class_hierarchy(self, file_path: str) -> str:
         """
         Generates a detailed Class Diagram for a specific file.
-        Uses the ClassInfo dataclass to show methods and attributes.
+       
         """
         analysis = self.parser.analyze_file(file_path)
         if not analysis.classes:
@@ -77,25 +115,19 @@ class MermaidGenerator:
         mermaid = ["classDiagram"]
         
         for cls in analysis.classes:
-            # 1. Define Class
             cls_name = cls.name
             mermaid.append(f"    class {cls_name}")
             
-            # 2. Inheritance
             for base in cls.bases:
                 mermaid.append(f"    {base} <|-- {cls_name}")
             
-            # 3. Attributes (Fields)
             for attr in cls.attributes:
                 mermaid.append(f"    {cls_name} : +{attr}")
                 
-            # 4. Methods
             for method in cls.methods:
                 mermaid.append(f"    {cls_name} : +{method}()")
                 
-            # 5. Metadata Note (Complexity/Lines)
-            # This is where your deep metrics shine!
-            mermaid.append(f"    note for {cls_name} \"Line: {cls.line_number}\"")
+            mermaid.append(f"    note for {cls_name} \"Complexity Score: {cls.metrics.cyclomatic_complexity if hasattr(cls, 'metrics') else 'N/A'}\"")
 
         return "\n".join(mermaid)
 
@@ -103,6 +135,7 @@ class MermaidGenerator:
         """
         Uses the parser's metrics to create a visual heatmap.
         Files with high complexity are colored RED.
+       
         """
         files = list(self.parser.file_analyses.keys())
         if not files:
