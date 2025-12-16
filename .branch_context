@@ -1,11 +1,11 @@
 # Branch Context
 
-**Branch:** `refactor/cli-artifact-naming`
-**Type:** `refactor` - Code refactoring (no functionality change)
-**Created:** 2025-12-17 02:28:00
+**Branch:** `ci/github-actions-configuration`
+**Type:** `ci` - CI/CD pipeline changes
+**Created:** 2025-12-17 02:54:00
 
 ## Purpose
-Planning on better CLI and better naming of the artifacts like code_review.md files.
+GITHUB ACTIONS
 
 ## Checklist
 - [ ] Implement core functionality
