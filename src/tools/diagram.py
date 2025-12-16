@@ -1,5 +1,7 @@
 # src/tools/diagram.py
-from typing import List, Dict, Any
+from collections import defaultdict
+from typing import List, Dict, Any, Set
+
 from src.tools.parser import PythonCodeParser, ClassInfo, FileAnalysis
 
 class MermaidGenerator:
@@ -12,25 +14,51 @@ class MermaidGenerator:
 
     def generate_architecture_map(self, files: List[str] = None) -> str:
         """
-        Generates a high-level dependency graph of the modules.
+        Generates a high-level dependency graph of the modules with folder groupings.
         """
-        # Get the dependency graph from your powerful parser
         graph = self.parser.get_dependency_graph(files)
-        
-        mermaid = ["graph TD"]
-        mermaid.append("    %% Styles")
-        mermaid.append("    classDef component fill:#f9f,stroke:#333,stroke-width:2px;")
-        mermaid.append("    classDef util fill:#e1f5fe,stroke:#01579b,stroke-dasharray: 5 5;")
+        if not graph:
+            return ""
+
+        nodes: Set[str] = set()
+        for src, targets in graph.items():
+            nodes.add(src)
+            nodes.update(targets)
+
+        sections: Dict[str, List[str]] = defaultdict(list)
+        for node in sorted(nodes):
+            sections[self._classify_node(node)].append(node)
+
+        mermaid = [
+            "%% RepoRanger Dependency Graph",
+            "graph TD",
+            "    %% Styles",
+            "    classDef Agents fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px;",
+            "    classDef Tools fill:#e1f5fe,stroke:#0277bd,stroke-width:1.5px;",
+            "    classDef Utils fill:#e8f5e9,stroke:#2e7d32;",
+            "    classDef Core fill:#fff3e0,stroke:#ef6c00;",
+            "    classDef Other fill:#eceff1,stroke:#455a64;",
+            "    %% Legend",
+            "    subgraph Legend[Legend]",
+            "        LA[Agent Modules]:::Agents",
+            "        LT[Tooling]:::Tools",
+            "        LU[Utilities]:::Utils",
+            "        LC[Core/Graph]:::Core",
+            "        LO[Misc]:::Other",
+            "    end",
+        ]
+
+        for section, items in sections.items():
+            mermaid.append(f"    subgraph {section}")
+            for path in items:
+                node_id = self._clean_id(path)
+                label = path.replace('src/', '')
+                style = self._style_for_node(path)
+                mermaid.append(f"        {node_id}[\"{label}\"]:::{style}")
+            mermaid.append("    end")
 
         for source, targets in graph.items():
-            # Clean paths for ID generation (src/utils/llm.py -> src_utils_llm)
             src_id = self._clean_id(source)
-            src_label = source.split("/")[-1] # Show just filename
-            
-            # Apply styling logic based on path
-            style = "component" if "agents" in source else "util"
-            mermaid.append(f"    {src_id}[\"{src_label}\"]:::{style}")
-
             for target in targets:
                 tgt_id = self._clean_id(target)
                 mermaid.append(f"    {src_id} --> {tgt_id}")
@@ -78,28 +106,36 @@ class MermaidGenerator:
         """
         files = list(self.parser.file_analyses.keys())
         if not files:
-            # Force analysis of all files if not done
             self.parser.get_dependency_graph()
             files = list(self.parser.file_analyses.keys())
 
-        mermaid = ["graph TD"]
-        mermaid.append("    %% Complexity Heatmap")
-        mermaid.append("    classDef safe fill:#a5d6a7,stroke:#2e7d32;")
-        mermaid.append("    classDef warning fill:#fff59d,stroke:#fbc02d;")
-        mermaid.append("    classDef danger fill:#ef9a9a,stroke:#c62828;")
+        mermaid = [
+            "%% RepoRanger Complexity Heatmap",
+            "graph TD",
+            "    %% Styles",
+            "    classDef safe fill:#a5d6a7,stroke:#2e7d32;",
+            "    classDef warning fill:#fff59d,stroke:#fbc02d;",
+            "    classDef danger fill:#ef9a9a,stroke:#c62828;",
+            "    classDef missing fill:#eceff1,stroke:#90a4ae,stroke-dasharray:5 5;",
+            "    %% Legend",
+            "    subgraph Legend[Legend]",
+            "        LS[CC < 10]:::safe",
+            "        LW[10 <= CC < 20]:::warning",
+            "        LD[CC >= 20]:::danger",
+            "    end",
+        ]
 
-        for f in files:
+        for f in sorted(files):
             analysis = self.parser.file_analyses[f]
             score = analysis.metrics.cyclomatic_complexity
-            
-            # Classify based on your parser's complexity score
+
             if score < 10:
                 style = "safe"
             elif score < 20:
                 style = "warning"
             else:
                 style = "danger"
-                
+
             clean_id = self._clean_id(f)
             label = f"{f} (CC: {score})"
             mermaid.append(f"    {clean_id}[\"{label}\"]:::{style}")
@@ -109,3 +145,25 @@ class MermaidGenerator:
     def _clean_id(self, text: str) -> str:
         """Helper to sanitize strings for Mermaid IDs"""
         return text.replace("/", "_").replace(".", "_").replace("-", "_").replace("\\", "_")
+
+    def _classify_node(self, path: str) -> str:
+        if path.startswith("src/agents"):
+            return "Agents"
+        if path.startswith("src/tools"):
+            return "Tools"
+        if path.startswith("src/utils"):
+            return "Utilities"
+        if path.startswith("src/graph") or path.startswith("src/state") or path == "main.py":
+            return "Core"
+        return "Other"
+
+    def _style_for_node(self, path: str) -> str:
+        if path.startswith("src/agents"):
+            return "Agents"
+        if path.startswith("src/tools"):
+            return "Tools"
+        if path.startswith("src/utils"):
+            return "Utils"
+        if path.startswith("src/graph") or path.startswith("src/state") or path == "main.py":
+            return "Core"
+        return "Other"

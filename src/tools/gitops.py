@@ -163,3 +163,29 @@ class GitOps:
 
         except GitCommandError as e:
             return f"Error pushing changes: {e}"
+
+
+    def has_staged_changes(self) -> bool:
+        """
+        Check if there are staged changes ready to commit.
+        Returns True if there are staged changes.
+        """
+        try:
+            # git diff --cached --quiet returns exit code 0 if no changes, 1 if changes
+            self.repo.git.diff("--cached", "--quiet")
+            return False  # No changes (exit code 0)
+        except Exception:
+            return True  # Has changes (exit code 1 or error)
+
+
+    def get_staged_diff(self) -> str:
+        """
+        Get the diff of staged changes.
+        Returns empty string if no staged changes.
+        """
+        try:
+            if not self.has_staged_changes():
+                return ""
+            return self.repo.git.diff("--cached")
+        except Exception as e:
+            return ""

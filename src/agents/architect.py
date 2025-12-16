@@ -1,4 +1,6 @@
 # src/agents/architect.py
+from datetime import datetime
+
 from langchain_core.messages import HumanMessage
 from src.state import RepoState
 from src.tools.parser import PythonCodeParser
@@ -51,9 +53,36 @@ def architect_node(state: RepoState) -> RepoState:
             "created_by": "architect"
         })
 
+    # 4. Bundle Documentation so humans can easily view the diagrams inline
+    if dep_graph_code or heatmap_code:
+        doc_lines = [
+            "# RepoRanger Architecture Snapshot",
+            f"_Generated: {datetime.utcnow().isoformat()}Z_",
+            "",
+            "## Dependency Graph",
+            "```mermaid",
+            dep_graph_code or "graph TD\n    Empty[\"No diagram generated\"]",
+            "```",
+            "",
+            "## Complexity Heatmap",
+            "```mermaid",
+            heatmap_code or "graph TD\n    Empty[\"No heatmap generated\"]",
+            "```",
+            "",
+            "> Tip: The Mermaid blocks above can be copied directly into PRs, Markdown docs, or tools like Obsidian/Notion.",
+        ]
+        doc_path = save_artifact("\n".join(doc_lines), "md")
+        new_artifacts.append({
+            "id": "arch_overview_doc",
+            "type": "markdown_doc",
+            "file_path": doc_path,
+            "description": "Inline documentation for dependency graph and complexity heatmap",
+            "created_by": "architect"
+        })
+
     print(f"--- 📐 Architect: Generated {len(new_artifacts)} diagrams ---")
     
-    # 4. Return State Update
+    # 5. Return State Update
     return {
         "artifacts": new_artifacts,
         "messages": [HumanMessage(content=f"Architect generated {len(new_artifacts)} visualization artifacts.")]

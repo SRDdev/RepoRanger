@@ -1,0 +1,6 @@
+docs: add test section and MermaidGenerator details to README
+
+This commit updates the README to include:
+- A test section to ensure users create tests for PRs
+- More information on the MermaidGenerator, including a link to
+  `docs/DIAGRAMS.md` for usage instructions.

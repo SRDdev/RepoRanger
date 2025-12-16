@@ -23,20 +23,12 @@ class Artifact(TypedDict):
     created_by: str     # Which agent made this?
 
 class RepoState(TypedDict):
-    # --- CONVERSATION (The Context) ---
-    # Standard chat history. We still keep this, but we carefully manage what goes in.
     messages: Annotated[List[BaseMessage], operator.add]
-
-    # --- CONFIGURATION (Lightweight) ---
     repo_path: str
     target_branch: str
-    
-    # --- THE REGISTRY (The "Library Card Catalog") ---
-    # Instead of 'diff_context: str', we have a list of available artifacts.
-    # The LLM can ask to "read" a specific artifact if it really needs to.
+    source_branch: str  # ADD THIS - current branch being merged
     artifacts: Annotated[List[Artifact], operator.add]
-
-    # --- FLOW CONTROL ---
-    # Used to route between nodes (e.g., "scribe", "architect", "end")
     next_node: str
     errors: Annotated[List[str], operator.add]
+    code_issues: Annotated[List[str], operator.add]  # ADD THIS - for Steward output
+    pr_metadata: Dict[str, Any]  # ADD THIS - commit counts, authors, etc.

@@ -17,7 +17,7 @@ llm:
   
   # specific overrides for creative tasks (e.g. Scribe writing docs)
   creative:
-    model: "gemini-1.5-flash"
+    model: "gemini-2.0-flash"
     temperature: 0.7
     max_tokens: 4096
 
