@@ -1,7 +1,7 @@
 # Git Workflow Instructions
 **Current Branch:** master
-**Target Branch:** main
-**Generated:** 2025-12-17 04:10:44
+**Target Branch:** master
+**Generated:** 2025-12-17 04:49:32
 ---
 
 ## Git Workflow
@@ -18,5 +18,5 @@ git push origin master
   * Path: ./.gitmentor_workspace/complexity_heatmap.mmd
 * **Architecture overview report** (markdown_doc)
   * Path: ./.gitmentor_workspace/architecture_overview.md
-* **Code Quality Report (11 issues)** (markdown_doc)
+* **Code Quality Report (0 issues)** (markdown_doc)
   * Path: ./.gitmentor_workspace/code_quality_report.md

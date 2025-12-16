@@ -1,5 +1,5 @@
 # RepoRanger Architecture Snapshot
-_Generated: 2025-12-17 04:10:44_
+_Generated: 2025-12-17 04:49:32_
 
 ## Dependency Graph
 ```mermaid
@@ -104,7 +104,7 @@ graph TD
         LD[CC >= 20]:::danger
     end
     cli_py["cli.py (CC: 11)"]:::warning
-    main_py["main.py (CC: 32)"]:::danger
+    main_py["main.py (CC: 34)"]:::danger
     src___init___py["src/__init__.py (CC: 0)"]:::safe
     src_agents_architect_py["src/agents/architect.py (CC: 11)"]:::warning
     src_agents_scribe_py["src/agents/scribe.py (CC: 45)"]:::danger

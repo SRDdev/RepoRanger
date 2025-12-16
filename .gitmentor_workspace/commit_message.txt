@@ -1,0 +1,9 @@
+refactor: General improvements and transition to GitMentor
+
+This commit introduces several general improvements across the repository, including:
+
+- Renaming `reporanger.yml` to `gitmentor.yml` to reflect the transition to GitMentor.
+- Minor edits to documentation and the workflow to reflect the new name and ensure correct configuration.
+- Removal of the `.branch_context` file.
+
+These changes aim to improve the overall structure and maintainability of the project and set the stage for more streamlined autonomous code review.
