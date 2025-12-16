@@ -5,17 +5,26 @@ __pycache__
 **/__pycache__
 *__pycache__
 
-
 # Demos
 agent_1_demo.py
 tool_1_demo.py
 tool_2_demo.py
 
 # RepoRanger build/run artifacts
+# Using * ensures we ignore the directory and everything inside it
 .reporanger_workspace/
 src/reporanger.egg-info/
+build/
+dist/
 
-
+# Generated outputs we don't want to track in the source branch
 COMMIT_MESSAGE.txt
 PR_Document.md
-logs
+CODE_DOCS.md
+PR_Analysis.md
+logs/
+
+# Mermaid diagram exports (if you ever export to local files)
+*.mmd
+*.svg
+*.png

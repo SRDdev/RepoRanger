@@ -15,7 +15,8 @@ dependencies = [
   "langchain>=0.2.12",
   "python-dotenv>=1.0.1",
   "GitPython>=3.1.43",
-  "PyYAML>=6.0.2"
+  "PyYAML>=6.0.2",
+  "rich>=13.0.0"
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,10 @@ dev = [
   "pytest>=8.2.0",
   "black>=24.8.0"
 ]
+
+[tool.setuptools]
+# This ensures setuptools finds your source code correctly
+packages = { find = { where = ["."] } }
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

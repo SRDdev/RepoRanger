@@ -41,11 +41,21 @@ class GitOps:
 
     def get_current_branch(self) -> str:
         """
-        Returns the current branch name.
+        Safely retrieves the current branch name, 
+        handling detached HEAD states common in CI environments.
         """
-        if not self.has_commits():
-            return "UNBORN_HEAD"
-        return self.repo.active_branch.name
+        try:
+            # Standard approach for local dev
+            return self.repo.active_branch.name
+        except TypeError:
+            # CI environment handling (Detached HEAD)
+            # 1. Try GitHub Actions environment variable
+            gh_head = os.getenv("GITHUB_HEAD_REF")
+            if gh_head:
+                return gh_head
+                
+            # 2. Fallback to the hexsha if no branch name is found
+            return self.repo.head.commit.hexsha[:7]
 
     def switch_branch(self, branch_name: str, create_new: bool = False) -> str:
         """

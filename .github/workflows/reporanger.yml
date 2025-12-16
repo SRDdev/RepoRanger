@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Required to allow the Action to post comments on the PR
+# Grants RepoRanger permission to post the analysis back to the PR
 permissions:
   contents: read
   pull-requests: write
@@ -16,30 +16,35 @@ jobs:
     
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Upgraded to v4
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      
+          fetch-depth: 0 # Required for Scribe to analyze full Git history
+
       - name: Set up Python
-        uses: actions/setup-python@v5 # Upgraded to v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      
+
       - name: Install dependencies
         run: |
-          pip install poetry
-          poetry install
-      
+          python -m pip install --upgrade pip
+          # Installs dependencies from the [project] section of your pyproject.toml
+          pip install .
+
       - name: Run RepoRanger
         env:
+          # Ensure GOOGLE_API_KEY is added to your GitHub Repo Secrets
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          # Provides the current branch name to bypass detached HEAD issues
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
-          poetry run python main.py \
+          # Executes RepoRanger in PR mode
+          python main.py \
             --target-branch ${{ github.base_ref }} \
             --mode pr
-      
-      - name: Comment PR
-        uses: actions/github-script@v7 # Upgraded to v7
+
+      - name: Comment PR with Analysis
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
@@ -54,12 +59,17 @@ jobs:
                 repo: context.repo.repo,
                 body: prBody
               });
+              console.log("Successfully posted analysis to Pull Request.");
             } else {
-              console.log("PR_Document.md not found, skipping comment.");
+              console.log("PR_Document.md not found. Verification of Scribe node recommended.");
             }
-      
+
       - name: Upload Workspace Artifacts
-        uses: actions/upload-artifact@v4 # FIXED: Upgraded from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
-          name: reporanger-analysis
-          path: .reporanger_workspace/
+          name: reporanger-analysis-artifacts
+          # Captures all professionally named reports and diagrams
+          path: |
+            .reporanger_workspace/*.md
+            .reporanger_workspace/*.mmd
+          retention-days: 7
