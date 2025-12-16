@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Need full history for commit analysis
+          fetch-depth: 0 # Required for Scribe to analyze commit history
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -27,27 +28,33 @@ jobs:
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
+          # Use the updated 'pr' mode and dynamic target branch
           poetry run python main.py \
             --target-branch ${{ github.base_ref }} \
-            --mode pr-only \
-            --output PR_Analysis.md
+            --mode pr
       
       - name: Comment PR
         uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
-            const prBody = fs.readFileSync('PR_Analysis.md', 'utf8');
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: prBody
-            });
+            // The Scribe now saves a copy directly to root as PR_Document.md
+            if (fs.existsSync('PR_Document.md')) {
+              const prBody = fs.readFileSync('PR_Document.md', 'utf8');
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: prBody
+              });
+            } else {
+              console.log("PR_Document.md not found, skipping comment.");
+            }
       
-      - name: Upload Artifacts
+      - name: Upload Workspace Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: reporanger-analysis
+          # Captures all professionally named mmd and md files
           path: .reporanger_workspace/
