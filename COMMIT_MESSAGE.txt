@@ -1,9 +1,0 @@
-feat(cli): improve PR creation flow and error handling
-
-- Enhance PR mode output with GitHub CLI integration.
-- Suggest a PR title from Scribe metadata.
-- Provide instructions for creating a PR using `gh pr create`
-  with `--head` for fork support.
-- Improve error handling and suggest solutions for common
-  `pull request create failed` errors, specifically addressing
-  the collaborator issue.

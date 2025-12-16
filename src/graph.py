@@ -1,11 +1,10 @@
-# src/graph.py - COMPLETELY REWRITTEN FOR CLARITY
+# src/graph.py - UPDATED FOR INTEGRATED DOCUMENTATION FLOW
 from langgraph.graph import StateGraph, START, END
 from src.state import RepoState
 from src.agents.architect import architect_node
 from src.agents.steward import steward_node
 from src.agents.scribe import scribe_node
 from src.agents.tactician import tactician_node
-
 
 # Initialize the Graph
 workflow = StateGraph(RepoState)
@@ -16,48 +15,47 @@ workflow.add_node("steward", steward_node)
 workflow.add_node("tactician", tactician_node)
 workflow.add_node("scribe", scribe_node)
 
+# --- Routing Functions ---
 
-# Routing function for START
 def route_start(state: RepoState) -> str:
     """Determine first node based on mode"""
     mode = state.get("mode", "full")
     
     if mode == "commit":
-        return "scribe"  # Commit mode: Skip everything, go to Scribe
+        # Commit mode: Jump straight to Scribe for message generation
+        return "scribe"
+    elif mode == "docs":
+        # Docs mode: Skip Architect/Tactician for a direct system overview
+        return "steward" 
     elif mode == "audit":
-        return "steward"  # Audit mode: Only Steward
+        return "steward"
     elif mode == "pr":
-        return "steward"  # PR mode: Steward → Scribe (skip Architect for speed)
+        return "steward"
     else:  # "full"
-        return "architect"  # Full analysis: Start from Architect
+        return "architect"
 
-
-# Routing function for Steward
 def route_steward(state: RepoState) -> str:
-    """Determine next node after Steward"""
+    """Determine next node after Steward analysis"""
     mode = state.get("mode", "full")
     
     if mode == "audit":
-        return "END"  # Audit mode: Stop after Steward
-    elif mode == "pr":
-        return "scribe"  # PR mode: Go directly to Scribe
-    else:  # "full"
-        return "tactician"  # Full mode: Continue to Tactician
+        return "END"
+    elif mode in ["pr", "docs"]:
+        # PR and Docs modes go directly to Scribe for drafting
+        return "scribe"
+    else:
+        return "tactician"
 
-
-# Routing function for Tactician
 def route_tactician(state: RepoState) -> str:
-    """After Tactician, always go to Scribe"""
+    """Tactician always leads to the Scribe for final documentation"""
     return "scribe"
 
-
-# Routing function for Scribe
 def route_scribe(state: RepoState) -> str:
-    """After Scribe, always end"""
+    """Scribe is the final step in the documentation and commit workflow"""
     return "END"
 
+# --- Define Edges ---
 
-# Define conditional edges
 workflow.add_conditional_edges(
     START,
     route_start,
@@ -68,10 +66,10 @@ workflow.add_conditional_edges(
     }
 )
 
-# Architect always goes to Steward
+# Standard flow: Architect -> Steward
 workflow.add_edge("architect", "steward")
 
-# Steward routing
+# Steward conditional routing
 workflow.add_conditional_edges(
     "steward",
     route_steward,
@@ -82,23 +80,11 @@ workflow.add_conditional_edges(
     }
 )
 
-# Tactician routing
-workflow.add_conditional_edges(
-    "tactician",
-    route_tactician,
-    {
-        "scribe": "scribe"
-    }
-)
+# Tactician to Scribe
+workflow.add_edge("tactician", "scribe")
 
-# Scribe routing (always END)
-workflow.add_conditional_edges(
-    "scribe",
-    route_scribe,
-    {
-        "END": END
-    }
-)
+# Scribe to END
+workflow.add_edge("scribe", END)
 
-# Compile
+# Compile the application
 app = workflow.compile()

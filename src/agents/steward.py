@@ -181,7 +181,7 @@ def steward_node(state: RepoState) -> RepoState:
 
     # Generate Report
     report_content = _generate_report(issues_found, file_metrics, changed_files)
-    report_path = save_artifact(report_content, "md")
+    report_path = save_artifact(report_content, "md", prefix="code_quality_report")
     
     artifact = {
         "id": "steward_report",
