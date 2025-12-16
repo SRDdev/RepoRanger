@@ -1,8 +1,8 @@
 """
 Utility for managing the RepoRanger workspace and artifact persistence.
+Optimized to overwrite existing artifacts to maintain a clean workspace.
 """
 import os
-import uuid
 from typing import Optional
 from src.utils.config import cfg
 
@@ -11,26 +11,26 @@ WORKSPACE_DIR = cfg.get("paths.workspace", "./.reporanger_workspace")
 
 def save_artifact(content: str, extension: str, prefix: Optional[str] = None) -> str:
     """
-    Saves content to the workspace with a descriptive filename.
+    Saves content to the workspace. Overwrites existing files with the same prefix.
     
     Args:
         content: The string content to save.
         extension: File extension (e.g., 'md', 'mmd', 'txt').
-        prefix: Optional descriptive prefix for the filename.
+        prefix: Optional descriptive name for the filename.
     """
     if not os.path.exists(WORKSPACE_DIR):
         os.makedirs(WORKSPACE_DIR)
     
     if prefix:
-        # Create a readable name: prefix_shortid.extension
-        short_id = str(uuid.uuid4())[:8]
-        filename = f"{prefix}_{short_id}.{extension}"
+        # Example: code_quality_report.md
+        filename = f"{prefix}.{extension}"
     else:
-        # Fallback to standard UUID
-        filename = f"{uuid.uuid4()}.{extension}"
+        # Fallback if no prefix is provided
+        filename = f"latest_artifact.{extension}"
     
     filepath = os.path.join(WORKSPACE_DIR, filename)
     
+    # Writing with 'w' naturally overwrites the existing file
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
         

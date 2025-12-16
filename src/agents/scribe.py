@@ -1,6 +1,7 @@
 # src/agents/scribe.py - PROFESSIONAL VERSION
 import os
 import textwrap
+import re
 from datetime import datetime
 from langchain_core.messages import SystemMessage, HumanMessage
 from src.state import RepoState
@@ -61,17 +62,14 @@ def _generate_system_documentation(git_ops: GitOps, state: RepoState) -> list:
     parser = PythonCodeParser(repo_path)
     architect = MermaidGenerator(parser)
     
-    # 1. Gather repository structure
     py_files = git_ops.repo.git.ls_files("*.py").splitlines()
     console.print(f"    Analyzing {len(py_files)} modules for system overview...")
     
-    # 2. Generate Visualizations using Architect tools
     dep_graph = architect.generate_architecture_map(py_files)
     complexity_map = architect.generate_complexity_heatmap()
     
-    # 3. Analyze Code Components for Narrative Context
     detailed_context = ""
-    for file_path in py_files[:15]: # Limit context for LLM token efficiency
+    for file_path in py_files[:15]: 
         try:
             analysis = parser.analyze_file(file_path)
             if analysis.classes or analysis.functions:
@@ -84,21 +82,20 @@ def _generate_system_documentation(git_ops: GitOps, state: RepoState) -> list:
         except Exception:
             continue
 
-    # 4. Invoke LLM to write the Narrative
     llm = get_llm("creative")
     prompt = textwrap.dedent(f"""
-        You are a Principal Technical Lead writing a 'Technical System Overview'.
+        You are a Principal Software Architect. Your goal is to write a "System Blueprint" document.
         
-        Write a professional guide to this repository based on the provided code structure.
-        
-        Structure your response in Markdown:
-        1. Executive Summary: High-level purpose of the system.
-        2. Core Architecture: Describe the primary components and how they interact.
-        3. Module Breakdown: Briefly describe the responsibility of major files/folders.
-        4. Key Logic Flows: Explain the main execution path.
-        
-        Repository Context:
+        Analyze the following technical context:
         {detailed_context}
+        
+        Requirements:
+        1. Executive Summary: Explain the "Why" behind this system.
+        2. Component Analysis: Describe the interaction between high-level modules.
+        3. Implementation Detail: Summarize the logic found in key files.
+        4. Operational Flow: How does data move through this system?
+        
+        Tone: Highly technical, objective, and authoritative.
     """)
     
     response = llm.invoke([
@@ -106,7 +103,6 @@ def _generate_system_documentation(git_ops: GitOps, state: RepoState) -> list:
         HumanMessage(content=prompt)
     ])
     
-    # 5. Assemble final Markdown with Mermaid Diagrams
     full_docs = f"# System Documentation\n\n{response.content}\n\n"
     
     if dep_graph:
@@ -115,7 +111,7 @@ def _generate_system_documentation(git_ops: GitOps, state: RepoState) -> list:
     if complexity_map:
         full_docs += f"## Complexity and Tech Debt Heatmap\n```mermaid\n{complexity_map}\n```\n"
     
-    doc_path = save_artifact(full_docs, "md",prefix="documentation")
+    doc_path = save_artifact(full_docs, "md", prefix="documentation")
     
     try:
         with open("CODE_DOCS.md", "w") as f:
@@ -169,7 +165,7 @@ def _generate_commit_message(git_ops: GitOps, state: RepoState) -> list:
             code_issues=code_issues
         )
         
-        commit_path = save_artifact(commit_msg, "txt")
+        commit_path = save_artifact(commit_msg, "txt", prefix="commit_message")
         with open("COMMIT_MESSAGE.txt", "w") as f:
             f.write(commit_msg)
         console.print("    [green]Success:[/green] Saved to COMMIT_MESSAGE.txt")
@@ -194,22 +190,27 @@ def _generate_commit_with_llm(diff: str, files: list, user_intent: str, code_iss
     if code_issues:
         critical = len([i for i in code_issues if i.get("severity") == "critical"])
         warnings = len([i for i in code_issues if i.get("severity") == "warning"])
-        issues_context = f"\nResolves {critical} critical issues and {warnings} warnings found by Steward."
+        issues_context = f"\nNote: This commit addresses {critical} critical issues and {warnings} warnings."
 
     prompt = textwrap.dedent(f"""
-        Write a professional Conventional Commit message.
-        Intent: {user_intent}
-        Files: {', '.join(files[:10])}
+        Write a professional Conventional Commit message based on these changes.
+        
+        Developer Intent: {user_intent}
+        Scope: {', '.join(files[:10])}
         {issues_context}
         
-        Diff:
+        Diff Data:
         {diff_snippet}
         
-        Output only the message text.
+        Rules:
+        1. Follow 'type(scope): subject' format.
+        2. Body should explain the 'What' and 'Why', not the 'How'.
+        3. Reference any code quality improvements.
+        4. Output ONLY the raw text of the message.
     """)
     
     response = llm.invoke([
-        SystemMessage(content="You are a senior engineer writing professional commit messages."),
+        SystemMessage(content="You are a senior engineer writing professional, semantic commit messages."),
         HumanMessage(content=prompt)
     ])
     
@@ -218,8 +219,60 @@ def _generate_commit_with_llm(diff: str, files: list, user_intent: str, code_iss
 
 
 # ============================================================================
-# PR DOCUMENTATION GENERATION
+# README & PR DOCUMENTATION GENERATION
 # ============================================================================
+
+def _generate_enhanced_readme(git_ops: GitOps, state: RepoState) -> str:
+    """Uses Gemini to rewrite the README based on codebase reality."""
+    console.print("    [yellow]Mode: AI README Transformation[/yellow]")
+    
+    current_readme = ""
+    if os.path.exists("README.md"):
+        with open("README.md", "r") as f:
+            current_readme = f.read()
+            
+    arch_context = ""
+    for art in state.get("artifacts", []):
+        if "architecture_overview" in art.get("file_path", ""):
+            with open(art["file_path"], "r") as f:
+                arch_context = f.read()
+            break
+
+    llm = get_llm("creative")
+    prompt = textwrap.dedent(f"""
+        You are a Principal Developer Advocate. Your task is to transform the project README.md 
+        into a world-class documentation hub.
+        
+        Existing README:
+        {current_readme}
+        
+        Current Architecture Context (Mermaid & Narrative):
+        {arch_context}
+        
+        Recent Code Quality State:
+        {state.get('code_issues', [])}
+        
+        Instructions:
+        1. Retain the core mission statement of the project.
+        2. Embed the provided Architecture Diagrams into a new "System Vision" section.
+        3. Update the feature list based on the new modules detected in the architecture.
+        4. Add a "Quality Standard" section summarizing the steward's findings.
+        5. DO NOT wrap the entire response in markdown code blocks (e.g., ```markdown).
+        6. Return the raw markdown content only.
+    """)
+    
+    response = llm.invoke([
+        SystemMessage(content="You are an expert technical documentarian specializing in developer experience (DX)."),
+        HumanMessage(content=prompt)
+    ])
+    
+    # Cleaning Logic: Remove any LLM-injected code fences
+    clean_content = response.content.strip()
+    clean_content = re.sub(r'^```markdown\n', '', clean_content)
+    clean_content = re.sub(r'^```\n', '', clean_content)
+    clean_content = re.sub(r'\n```$', '', clean_content)
+    
+    return clean_content
 
 def _generate_pr_documentation(git_ops: GitOps, state: RepoState, target_branch: str) -> list:
     console.print("    [yellow]Mode: PR Documentation Generation[/yellow]")
@@ -240,7 +293,7 @@ def _generate_pr_documentation(git_ops: GitOps, state: RepoState, target_branch:
         artifacts=state.get("artifacts", [])
     )
     
-    pr_path = save_artifact(pr_text, "md")
+    pr_path = save_artifact(pr_text, "md", prefix="pr_documentation")
     with open("PR_Document.md", "w") as f:
         f.write(pr_text)
     console.print("    [green]Success:[/green] Saved to PR_Document.md")
@@ -295,22 +348,29 @@ def _generate_pr_with_llm(commits_data, source_branch, target_branch, code_issue
     issues_section = ""
     if code_issues:
         critical = len([i for i in code_issues if i.get("severity") == "critical"])
-        issues_section = f"\n## Code Quality\nSteward found {critical} critical issues addressed in this PR."
+        issues_section = f"\n## Code Quality Audit\nSteward detected {critical} critical quality blockers addressed in this scope."
 
     prompt = textwrap.dedent(f"""
-        Create a Pull Request description for:
-        From: {source_branch} -> To: {target_branch}
+        You are a Tech Lead preparing a Pull Request. Generate a comprehensive PR description.
         
-        Commits:
+        Path: {source_branch} -> {target_branch}
+        
+        Commit History:
         {commits_text}
         
         {issues_section}
         
-        Write an Overview, Key Changes, and Testing instructions.
+        Structure:
+        1. Context & Motivation: Why is this change happening?
+        2. Technical Delta: What are the primary logical changes?
+        3. Risk Assessment: Are there any side effects?
+        4. Verification: How can the reviewer test these changes?
+        
+        Return the raw markdown description.
     """)
     
     response = llm.invoke([
-        SystemMessage(content="You are a senior engineer writing PR documentation."),
+        SystemMessage(content="You are a senior engineer writing thorough, high-impact PR descriptions."),
         HumanMessage(content=prompt)
     ])
     

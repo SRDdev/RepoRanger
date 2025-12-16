@@ -12,7 +12,6 @@ tool_2_demo.py
 
 # RepoRanger build/run artifacts
 # Using * ensures we ignore the directory and everything inside it
-.reporanger_workspace/
 src/reporanger.egg-info/
 build/
 dist/

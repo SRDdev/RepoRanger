@@ -79,7 +79,7 @@ def tactician_node(state: RepoState) -> RepoState:
         artifacts=artifacts,
         has_critical=has_critical
     )
-    instructions_path = save_artifact(instructions, "md", "Git")
+    instructions_path = save_artifact(instructions, "md", "git_workflow")
     
     # --- Rich Console Output ---
     content = []

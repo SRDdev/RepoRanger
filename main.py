@@ -1,7 +1,9 @@
 # main.py - RepoRanger Autonomous Code Steward
 import os
+import re
 import argparse
 import subprocess
+from datetime import datetime
 from dotenv import load_dotenv
 
 from src.graph import app
@@ -24,28 +26,28 @@ def main():
         epilog="""
 Examples:
   # Create smart branch
-  python main.py branch --intent "Add user authentication"
+  python main.py branch --intent "Refactor parser logic"
   
-  # Full analysis
-  python main.py --mode full --target-branch main
+  # Full analysis and README sync
+  python main.py --mode full --target-branch master
         """
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # --- BRANCH COMMAND ---
-    branch_parser = subparsers.add_parser('branch', help='Create smart branch')
-    branch_parser.add_argument('--intent', '-m', required=True, help='Branch purpose/intent')
+    branch_parser = subparsers.add_parser('branch', help='Create semantic branch')
+    branch_parser.add_argument('--intent', '-m', required=True, help='Branch purpose')
     branch_parser.add_argument('--type', '-t', choices=[
         'feat', 'fix', 'hotfix', 'refactor', 'perf', 
         'docs', 'test', 'chore', 'style', 'ci', 'build'
-    ], help='Branch type')
+    ], help='Override branch type')
     branch_parser.add_argument('--no-commit', action='store_true', help='Skip initial commit')
 
     # --- GLOBAL ARGUMENTS ---
-    parser.add_argument("--target-branch", default="main", help="Target branch")
+    parser.add_argument("--target-branch", default="master", help="Base branch for comparison")
     parser.add_argument("--mode", choices=["full", "pr", "commit", "audit", "docs"], default="full")
-    parser.add_argument("--commit-intent", help="Commit intent")
+    parser.add_argument("--commit-intent", help="Intent for generated commit message")
     
     args = parser.parse_args()
     
@@ -59,6 +61,7 @@ Examples:
         _handle_branch_creation(args)
         return
 
+    # Initialize GitOps with CI-safe branch detection
     git_ops = GitOps(os.getcwd())
     current_branch = git_ops.get_current_branch()
     
@@ -79,44 +82,43 @@ Examples:
     _execute_graph_mode(args, current_branch)
 
 # ========================================================================
-# COMMAND HANDLERS
+# EXECUTION LOGIC
 # ========================================================================
 
-def _handle_branch_creation(args):
-    """Logic for smart branch creation and checkout"""
-    console.print("[bold yellow]Mode: Smart Branch Creator[/bold yellow]")
+def _execute_graph_mode(args, current_branch):
+    """Runs the multi-agent pipeline and formats results"""
+    initial_state = {
+        "repo_path": os.getcwd(),
+        "target_branch": args.target_branch,
+        "source_branch": current_branch,
+        "mode": args.mode,
+        "artifacts": [], 
+        "messages": [], 
+        "code_issues": []
+    }
     
-    git_ops = GitOps(os.getcwd())
-    manager = BranchManager(git_ops)
+    console.print("\n[bold]STARTING ANALYSIS PIPELINE[/bold]\n", style="dim")
     
-    console.print(f"Intent: [cyan]{args.intent}[/cyan]")
+    final_state = initial_state
+    with console.status("[dim]Processing pipeline nodes...", spinner="dots"):
+        for event in app.stream(initial_state):
+            node_name = list(event.keys())[0]
+            final_state = event[node_name]
+            _render_node_summary(node_name, final_state)
     
-    with console.status("[dim]Analyzing intent and generating branch name...", spinner="dots"):
-        try:
-            branch_name, branch_type = manager.create_smart_branch(
-                user_intent=args.intent,
-                auto_detect_type=(args.type is None),
-                suggested_type=args.type,
-                create_initial_commit=(not args.no_commit)
-            )
-            
-            output = [
-                f"Branch Created: [cyan]{branch_name}[/cyan]",
-                f"Branch Type:    [yellow]{branch_type}[/yellow]",
-                "",
-                "[bold]Next Steps:[/bold]",
-                "1. git add .",
-                "2. rr commit"
-            ]
-            
-            console.print(Panel("\n".join(output), title="Success", border_style="green"))
-        except Exception as e:
-            console.print(f"[red]Error:[/red] {e}")
+    # Post-Processing: Sync Architecture to README if in Full mode
+    if args.mode == "full":
+        _update_readme_with_analysis(final_state)
+
+    # Post-Processing: Generate Deployment Instructions
+    if args.mode in ["pr", "full"]:
+        _handle_pr_output(final_state, args.target_branch)
+    
+    console.print(f"\n[bold green]Pipeline execution finished successfully.[/bold green]")
 
 def _execute_commit_mode(args):
-    """Directly calls the scribe agent for commit messages"""
+    """Directly invokes Scribe for a commit message"""
     from src.agents.scribe import scribe_node
-    
     console.print("[bold yellow]Mode: Commit Message Generation[/bold yellow]")
     
     intent = args.commit_intent
@@ -135,36 +137,53 @@ def _execute_commit_mode(args):
         result = scribe_node(state)
         _handle_commit_output(result)
 
-def _execute_graph_mode(args, current_branch):
-    """Runs pipeline and formats per-agent results"""
-    initial_state = {
-        "repo_path": os.getcwd(),
-        "target_branch": args.target_branch,
-        "source_branch": current_branch,
-        "mode": args.mode,
-        "artifacts": [], "messages": [], "code_issues": []
-    }
+# ========================================================================
+# README SYNCHRONIZATION
+# ========================================================================
+def _update_readme_with_analysis(state):
+    """
+    Triggers Scribe's AI rewrite of the README.md.
+    This replaces the old manual marker logic with full AI generation.
+    """
+    from src.agents.scribe import _generate_enhanced_readme
+    from src.tools.gitops import GitOps
     
-    console.print("\n[bold]STARTING ANALYSIS PIPELINE[/bold]\n", style="dim")
+    console.print("    [blue]Agent Scribe: Reimagining README.md with Gemini...[/blue]")
     
-    final_state = None
-    with console.status("[dim]Processing pipeline nodes...", spinner="dots"):
-        for event in app.stream(initial_state):
-            node_name = list(event.keys())[0]
-            final_state = event[node_name]
-            _render_node_summary(node_name, final_state)
+    git_ops = GitOps(os.getcwd())
     
-    if args.mode in ["pr", "full"]:
-        _handle_pr_output(final_state, args.target_branch)
+    # Generate the new content using AI
+    new_readme_content = _generate_enhanced_readme(git_ops, state)
     
-    console.print(f"\n[bold green]Pipeline execution finished successfully.[/bold green]")
+    if not new_readme_content:
+        console.print("    [red]Error: AI failed to generate README content.[/red]")
+        return
+
+    try:
+        # Backup old readme just in case
+        if os.path.exists("README.md"):
+            os.rename("README.md", "README.md.bak")
+            
+        with open("README.md", "w") as f:
+            f.write(new_readme_content)
+            
+        console.print("    [green]Success: README.md has been fully updated by Scribe.[/green]")
+        
+        # Clean up backup if successful
+        if os.path.exists("README.md.bak"):
+            os.remove("README.md.bak")
+            
+    except Exception as e:
+        console.print(f"    [red]Error writing README: {e}[/red]")
+        if os.path.exists("README.md.bak"):
+            os.rename("README.md.bak", "README.md")
 
 # ========================================================================
-# OUTPUT FORMATTERS
+# OUTPUT HANDLERS
 # ========================================================================
 
 def _render_node_summary(node_name: str, state: dict):
-    """Prints a clean, boxed summary of what each agent produced"""
+    """Prints a clean, boxed summary of agent output"""
     artifacts = state.get("artifacts", [])
     issues = state.get("code_issues", [])
     
@@ -172,62 +191,77 @@ def _render_node_summary(node_name: str, state: dict):
         return
 
     content = []
-    
-    # List Artifacts
     for art in artifacts:
         if art.get("created_by") == node_name:
             content.append(f"Artifact: [bold]{art['description']}[/bold]")
             content.append(f"Path:     [dim]{art['file_path']}[/dim]\n")
 
-    # List Code Issues (for Steward)
     if node_name == "steward" and issues:
         content.append("[bold red]Analysis Findings:[/bold red]")
         for issue in issues[:5]:
             sev = issue.get('severity', 'info').upper()
-            content.append(f"[{sev}] {issue['file']}: {issue['message']}")
+            content.append(f"  - [{sev}] {issue['file']}: {issue['message']}")
         if len(issues) > 5:
-            content.append(f"[dim]... and {len(issues)-5} more issues in full report.[/dim]")
+            content.append(f"  [dim]... and {len(issues)-5} more issues in full report.[/dim]")
 
     if content:
-        console.print(Panel("\n".join(content).strip(), title=f"Agent: {node_name.capitalize()}", title_align="left", border_style="dim"))
+        console.print(Panel("\n".join(content).strip(), title=f"Agent: {node_name.capitalize()}", border_style="dim"))
+
+def _handle_branch_creation(args):
+    """Manages Smart Branching flow"""
+    console.print("[bold yellow]Mode: Smart Branch Creator[/bold yellow]")
+    git_ops = GitOps(os.getcwd())
+    manager = BranchManager(git_ops)
+    
+    with console.status("[dim]Generating semantic branch name...", spinner="dots"):
+        try:
+            branch_name, branch_type = manager.create_smart_branch(
+                user_intent=args.intent,
+                auto_detect_type=(args.type is None),
+                suggested_type=args.type,
+                create_initial_commit=(not args.no_commit)
+            )
+            
+            summary = [
+                f"Branch: [cyan]{branch_name}[/cyan]",
+                f"Type:   [yellow]{branch_type}[/yellow]",
+                "",
+                "1. git add .",
+                "2. python main.py --mode commit"
+            ]
+            console.print(Panel("\n".join(summary), title="Success", border_style="green"))
+        except Exception as e:
+            console.print(f"[red]Error:[/red] {e}")
 
 def _handle_commit_output(state):
     artifacts = state.get("artifacts", [])
     if any(a.get("type") == "commit_msg" for a in artifacts):
         console.print(Panel(
-            "Commit message ready.\n\n"
-            "Review: [cyan]cat COMMIT_MESSAGE.txt[/cyan]\n"
-            "Apply:  [cyan]git commit -F COMMIT_MESSAGE.txt[/cyan]",
-            title="Success",
-            border_style="green"
+            "Commit message saved to: [cyan]COMMIT_MESSAGE.txt[/cyan]\n"
+            "Apply: [bold]git commit -F COMMIT_MESSAGE.txt[/bold]",
+            title="Success", border_style="green"
         ))
-    else:
-        console.print("[red]Error:[/red] No commit message generated.")
 
 def _handle_pr_output(state, target_branch):
-    """Final summary for PR creation"""
-    actual_state = state.get('scribe', state) if isinstance(state, dict) else state
+    """Final summary for deployment"""
     git_ops = GitOps(os.getcwd())
     current_branch = git_ops.get_current_branch()
     
     try:
         gh_user = subprocess.check_output(["gh", "api", "user", "-q", ".login"], text=True).strip()
-    except:
-        gh_user = "USER"
-
-    suggested_title = actual_state.get("pr_title", f"Update: {current_branch}")
+    except Exception:
+        gh_user = "YOUR_USERNAME"
 
     output = [
-        "[bold cyan]STEP 1: PUSH CHANGES[/bold cyan]",
+        "[bold cyan]STEP 1: PUSH[/bold cyan]",
         f"git push origin {current_branch}",
         "",
-        "[bold cyan]STEP 2: CREATE PULL REQUEST[/bold cyan]",
-        f"gh pr create --base {target_branch} --head {gh_user}:{current_branch} --title '{suggested_title}' --body-file PR_Document.md",
+        "[bold cyan]STEP 2: CREATE PR[/bold cyan]",
+        f"gh pr create --base {target_branch} --head {gh_user}:{current_branch} --body-file PR_Document.md",
         "",
-        "[dim]Note: If permissions fail, append --web to the gh command.[/dim]"
+        "[dim]Tip: Add --web if you face authentication issues.[/dim]"
     ]
-    
-    console.print(Panel("\n".join(output), title="DEPLOYMENT STEPS", title_align="left", border_style="green", expand=False))
+    console.print(Panel("\n".join(output), title="DEPLOYMENT STEPS", border_style="green"))
 
 if __name__ == "__main__":
     main()

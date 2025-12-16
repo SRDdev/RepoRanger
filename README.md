@@ -8,6 +8,23 @@ RepoRanger is an agentic AI system built with **LangGraph**. It acts as a Senior
 
 RepoRanger is not a "chat with code" interface; it is an active maintainer focused on stopping Rot & Drift (docs diverging from code, architecture decay, and silent tech debt). It keeps context light through artifact-based memory and combines deterministic analysis with generative reasoning.
 
+## 🗺️ System Vision
+
+RepoRanger's architecture is designed for a linear, artifact-driven workflow. The core of the system is a LangGraph orchestrator that manages the state and flow between agents. Each agent performs a specific task, writing its results as artifacts to a shared workspace. This design ensures minimal context is passed to the LLMs, improving performance and reducing costs.
+
+```mermaid
+graph LR
+    START --> Architect
+    Architect --> Steward
+    Steward --> Tactician
+    Tactician --> Scribe
+    Scribe --> END
+    style START fill:#f9f,stroke:#333,stroke-width:2px
+    style END fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+The diagram above illustrates the core workflow, from the initial architectural analysis to the final documentation updates.
+
 ## 🧱 Architecture Overview
 
 | Layer            | Details                                                                                             |
@@ -18,6 +35,14 @@ RepoRanger is not a "chat with code" interface; it is an active maintainer focus
 | Persistence      | Artifacts saved to `.reporanger_workspace` via `workspace.py`                                       |
 
 The workflow is linear for v1: Architect → Steward → Tactician → Scribe → END. Each agent reads and writes artifacts to keep the LLM context tight.
+
+## ✨ Key Features
+
+*   **Automated Documentation:** Keeps documentation synchronized with code changes.
+*   **Code Quality Audits:** Identifies potential issues and suggests refactoring.
+*   **Dependency Visualization:** Generates diagrams for understanding project structure.
+*   **Automated Refactoring:** Branches, stages, and commits refactor plans for review.
+*   **Changelog Generation:** Automatically updates changelogs with meaningful narratives.
 
 ## 🧠 Agent Swarm
 
@@ -42,6 +67,10 @@ START
   Scribe      -> drafts PR narratives & changelog updates
 END
 ```
+
+## 🩺 System Health & Quality Standard
+
+*   **Recent Code Quality Findings:** Currently, no code quality issues have been detected. This indicates a healthy codebase. Regular audits are recommended to maintain this status. The Code Steward ensures that code adheres to defined complexity thresholds and identifies any instances of dead code, promoting maintainability and reducing technical debt.
 
 ## 🚀 Getting Started
 
@@ -83,4 +112,3 @@ Contributions are welcome! Please ensure that any PR includes updated tests.
 
 ## 📄 License
 MIT
-# Test change
