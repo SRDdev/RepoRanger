@@ -351,29 +351,58 @@ def _generate_pr_with_llm(commits_data, source_branch, target_branch, code_issue
         issues_section = f"\n## Code Quality Audit\nSteward detected {critical} critical quality blockers addressed in this scope."
 
     prompt = textwrap.dedent(f"""
-        You are a Tech Lead preparing a Pull Request. Generate a comprehensive PR description.
+        You are a Staff Software Engineer. Generate a formal Pull Request description.
         
+        CONTEXT:
         Path: {source_branch} -> {target_branch}
-        
-        Commit History:
-        {commits_text}
-        
+        Commits: {commits_text}
         {issues_section}
         
-        Structure:
-        1. Context & Motivation: Why is this change happening?
-        2. Technical Delta: What are the primary logical changes?
-        3. Risk Assessment: Are there any side effects?
-        4. Verification: How can the reviewer test these changes?
+        INSTRUCTIONS:
+        1. Start DIRECTLY with the header '## Overview'.
+        2. DO NOT use emojis.
+        3. DO NOT include conversational filler or introductory phrases.
+        4. Use a structured, clean Markdown format.
+        5. Focus on technical impact and logical changes.
+        6. DO NOT wrap the response in markdown code blocks.
         
-        Return the raw markdown description.
+        STRUCTURE:
+        ## Overview
+        [Summarize the purpose of these changes]
+        
+        ## Technical Delta
+        [Describe the architectural or logical shifts]
+        
+        ## Verification and Testing
+        [Instructions to validate the changes]
+        
+        ## Quality Assessment
+        [Summary of Steward health status]
     """)
     
     response = llm.invoke([
-        SystemMessage(content="You are a senior engineer writing thorough, high-impact PR descriptions."),
+        SystemMessage(content="You are a senior technical writer. You provide raw markdown output only. No conversational filler. No emojis."),
         HumanMessage(content=prompt)
     ])
     
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    header = f"# Pull Request Documentation\n\n**Generated:** {now}\n**Branch:** {source_branch}\n\n---\n\n"
-    return header + response.content
+    # CHATTER FILTER: Ensure we start at the first markdown header
+    clean_content = response.content.strip()
+    
+    # 1. Strip everything before the first header
+    if "##" in clean_content:
+        clean_content = clean_content[clean_content.find("##"):]
+        
+    # 2. Strip potential markdown code fences
+    clean_content = re.sub(r'^```markdown\n', '', clean_content)
+    clean_content = re.sub(r'^```\n', '', clean_content)
+    clean_content = re.sub(r'\n```$', '', clean_content)
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    header = (
+        f"# Pull Request Documentation\n\n"
+        f"**Generated:** {now}\n"
+        f"**Source:** {source_branch} -> **Target:** {target_branch}\n\n"
+        f"---\n\n"
+    )
+    
+    return header + clean_content

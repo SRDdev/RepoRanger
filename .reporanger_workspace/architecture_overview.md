@@ -1,5 +1,5 @@
 # RepoRanger Architecture Snapshot
-_Generated: 2025-12-17 03:33:59_
+_Generated: 2025-12-17 03:41:45_
 
 ## Dependency Graph
 ```mermaid
