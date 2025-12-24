@@ -26,3 +26,4 @@ logs/
 # Mermaid diagram exports (if you ever export to local files)
 *.mmd
 *.svg
+.appmodconfig

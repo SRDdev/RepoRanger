@@ -1,5 +1,5 @@
 # RepoRanger Architecture Snapshot
-_Generated: 2025-12-17 05:41:15_
+_Generated: 2025-12-25 04:55:30_
 
 ## Dependency Graph
 ```mermaid
@@ -30,6 +30,7 @@ graph TD
     end
     subgraph Agents
         src_agents_architect_py["agents/architect.py"]:::Agents
+        src_agents_explainer_py["agents/explainer.py"]:::Agents
         src_agents_scribe_py["agents/scribe.py"]:::Agents
         src_agents_steward_py["agents/steward.py"]:::Agents
         src_agents_tactician_py["agents/tactician.py"]:::Agents
@@ -38,6 +39,7 @@ graph TD
         src_tools_branch_manager_py["tools/branch_manager.py"]:::Tools
         src_tools_diagram_py["tools/diagram.py"]:::Tools
         src_tools_gitops_py["tools/gitops.py"]:::Tools
+        src_tools_history_py["tools/history.py"]:::Tools
         src_tools_parser_py["tools/parser.py"]:::Tools
     end
     subgraph Utilities
@@ -49,17 +51,21 @@ graph TD
     end
     cli_py --> src_tools_branch_manager_py
     cli_py --> src_tools_gitops_py
+    main_py --> src_agents_explainer_py
     main_py --> src_agents_scribe_py
     main_py --> src_graph_py
     main_py --> src_tools_branch_manager_py
     main_py --> src_tools_gitops_py
+    main_py --> src_tools_history_py
     main_py --> src_utils_config_py
+    main_py --> src_utils_llm_py
     src_agents_architect_py --> src_state_py
     src_agents_architect_py --> src_tools_diagram_py
     src_agents_architect_py --> src_tools_gitops_py
     src_agents_architect_py --> src_tools_parser_py
     src_agents_architect_py --> src_utils_config_py
     src_agents_architect_py --> src_utils_workspace_py
+    src_agents_explainer_py --> src_utils_llm_py
     src_agents_scribe_py --> src_state_py
     src_agents_scribe_py --> src_tools_diagram_py
     src_agents_scribe_py --> src_tools_gitops_py
@@ -84,6 +90,7 @@ graph TD
     src_tools_branch_manager_py --> src_tools_gitops_py
     src_tools_branch_manager_py --> src_utils_llm_py
     src_tools_diagram_py --> src_tools_parser_py
+    src_tools_history_py --> src_tools_gitops_py
     src_utils_llm_py --> src_utils_config_py
     src_utils_workspace_py --> src_utils_config_py
 ```
@@ -103,11 +110,12 @@ graph TD
         LW[10 <= CC < 20]:::warning
         LD[CC >= 20]:::danger
     end
-    cli_py["cli.py (CC: 11)"]:::warning
-    main_py["main.py (CC: 34)"]:::danger
+    cli_py["cli.py (CC: 16)"]:::warning
+    main_py["main.py (CC: 41)"]:::danger
     src___init___py["src/__init__.py (CC: 0)"]:::safe
     src_agents_architect_py["src/agents/architect.py (CC: 11)"]:::warning
-    src_agents_scribe_py["src/agents/scribe.py (CC: 45)"]:::danger
+    src_agents_explainer_py["src/agents/explainer.py (CC: 20)"]:::danger
+    src_agents_scribe_py["src/agents/scribe.py (CC: 87)"]:::danger
     src_agents_steward_py["src/agents/steward.py (CC: 62)"]:::danger
     src_agents_tactician_py["src/agents/tactician.py (CC: 26)"]:::danger
     src_graph_py["src/graph.py (CC: 10)"]:::warning
@@ -115,9 +123,10 @@ graph TD
     src_tools_branch_manager_py["src/tools/branch_manager.py (CC: 29)"]:::danger
     src_tools_diagram_py["src/tools/diagram.py (CC: 41)"]:::danger
     src_tools_gitops_py["src/tools/gitops.py (CC: 33)"]:::danger
+    src_tools_history_py["src/tools/history.py (CC: 29)"]:::danger
     src_tools_parser_py["src/tools/parser.py (CC: 190)"]:::danger
-    src_utils_config_py["src/utils/config.py (CC: 13)"]:::warning
-    src_utils_llm_py["src/utils/llm.py (CC: 5)"]:::safe
+    src_utils_config_py["src/utils/config.py (CC: 14)"]:::warning
+    src_utils_llm_py["src/utils/llm.py (CC: 6)"]:::safe
     src_utils_logger_py["src/utils/logger.py (CC: 27)"]:::danger
     src_utils_prompts_py["src/utils/prompts.py (CC: 7)"]:::safe
     src_utils_workspace_py["src/utils/workspace.py (CC: 4)"]:::safe
